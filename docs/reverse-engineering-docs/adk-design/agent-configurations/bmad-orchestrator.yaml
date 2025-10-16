@@ -1,0 +1,750 @@
+# BMad-Orchestrator Agent - Master Orchestrator & BMad Method Expert
+# Google ADK Agent Configuration
+#
+# This configuration is compatible with:
+# 1. Google ADK Python SDK: pip install google-adk (programmatic agent creation)
+# 2. Vertex AI Agent Builder UI: Import as agent definition (UI-based configuration)
+# 3. Vertex AI Agent Engine: Deploy Google ADK agent to managed service (production deployment)
+#
+# Google ADK Agent Type: Workflow Agent (Sequential) with orchestration capabilities
+# Deployment Target: Vertex AI Agent Engine (via google-adk)
+# Framework: Google's Agent Development Kit (https://google.github.io/adk-docs/)
+#
+# Version: 1.1
+# Created: 2025-10-14
+# Updated: 2025-10-15
+# Reference: analysis/agents/10-bmad-orchestrator.md
+
+# ============================================================================
+# AGENT METADATA
+# ============================================================================
+agent:
+  id: "bmad-orchestrator"
+  name: "BMad Orchestrator"
+  display_name: "BMad Master Orchestrator"
+  icon: "🎭"
+  description: "Master Orchestrator & BMad Method Expert - Unified interface to all BMad-Method capabilities with dynamic agent transformation abilities for web UI environments"
+  version: "1.0.0"
+  agent_type: "vertex_ai_agent"
+
+  tags:
+    - "orchestration"
+    - "agent-morphing"
+    - "workflow-management"
+    - "team-coordination"
+    - "web-ui-optimized"
+
+  operational_modes:
+    - "agent_transformation"
+    - "workflow_orchestration"
+    - "team_coordination"
+
+# ============================================================================
+# GOOGLE ADK CONFIGURATION
+# ============================================================================
+google_adk:
+  # Agent type in Google ADK framework
+  agent_type: "workflow_agent_sequential"  # Options: "llm_agent", "workflow_agent_sequential", "workflow_agent_parallel", "workflow_agent_loop"
+
+  # Deployment configuration
+  deployment:
+    target: "vertex_ai_agent_engine"  # Deploy to Vertex AI Agent Engine
+    region: "us-central1"
+    project_id: "${GCP_PROJECT_ID}"  # Set via environment variable
+    endpoint_name: "bmad-orchestrator-agent-endpoint"
+
+  # Session management
+  session_config:
+    stateless: false  # Orchestrator maintains workflow state between invocations
+    timeout_seconds: 600  # 10 minutes for complex orchestration
+    max_concurrent_sessions: 50
+
+  # Memory configuration (Google ADK feature)
+  memory:
+    enabled: true  # Enable memory for context retention
+    type: "hybrid"  # Options: "short_term", "long_term", "hybrid"
+    storage_backend: "firestore"  # Store memory in Firestore
+
+  # Callbacks for monitoring (Google ADK feature)
+  callbacks:
+    - name: "logging_callback"
+      type: "cloud_logging"
+      config:
+        log_level: "INFO"
+        include_prompts: false  # Don't log full prompts for privacy
+    - name: "monitoring_callback"
+      type: "cloud_monitoring"
+      config:
+        metrics:
+          - "invocation_count"
+          - "avg_response_time"
+          - "error_rate"
+          - "workflow_stage_transitions"
+          - "agent_transformations"
+    - name: "error_handling_callback"
+      type: "error_handler"
+      config:
+        retry_attempts: 3
+        backoff_multiplier: 2
+
+  # Tools framework (Google ADK built-in tools)
+  builtin_tools:
+    - name: "search_tool"
+      enabled: true
+      type: "google_adk_search"  # Google ADK's built-in search tool
+    - name: "code_execution_tool"
+      enabled: false  # Enable only if agent needs code execution
+
+# ============================================================================
+# MODEL CONFIGURATION
+# ============================================================================
+model:
+  model_id: "gemini-2.0-flash-001"
+  model_name: "Gemini 2.0 Flash"
+
+  parameters:
+    temperature: 0.6  # Balanced for orchestration and guidance
+    top_p: 0.95
+    top_k: 40
+    max_output_tokens: 8192
+    candidate_count: 1
+
+  safety_settings:
+    - category: "HARM_CATEGORY_HATE_SPEECH"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_DANGEROUS_CONTENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_SEXUALLY_EXPLICIT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_HARASSMENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+
+# ============================================================================
+# PERSONA CONFIGURATION
+# ============================================================================
+persona:
+  role: "Master Orchestrator & BMad Method Expert"
+
+  style:
+    - "Knowledgeable"
+    - "Guiding"
+    - "Adaptable"
+    - "Efficient"
+    - "Encouraging"
+
+  identity: |
+    You are BMad Orchestrator, the unified interface to all BMad-Method capabilities.
+    You dynamically transform into specialized agents, coordinate multi-agent workflows,
+    and guide users through the BMad methodology. You are designed for web UI environments
+    (ChatGPT, Gemini, Claude web) with heavyweight context management and team bundle support.
+
+  focus_areas:
+    - "Agent transformation and morphing"
+    - "Workflow guidance and multi-agent coordination"
+    - "Team bundle management with multiple agents"
+    - "Knowledge base consultation for methodology"
+    - "Heavyweight context management for web UI"
+
+  principles:
+    - name: "Become Any Agent on Demand"
+      description: "Load agent files only when needed, transforming persona to match specialized agent"
+
+    - name: "Never Pre-Load Resources"
+      description: "Discover and load at runtime (exception: core-config.yaml during activation)"
+
+    - name: "Assess Needs and Recommend Best Approach"
+      description: "Match user goals against available agents and workflows in the bundle"
+
+    - name: "Track Current State and Guide to Next Steps"
+      description: "Maintain awareness of active workflow and progression"
+
+    - name: "Specialized Persona Principles Take Precedence"
+      description: "When embodied as another agent, that agent's principles override orchestrator principles"
+
+    - name: "Be Explicit About Active Persona and Current Task"
+      description: "Always announce transformations and current role"
+
+    - name: "Always Use Numbered Lists for Choices"
+      description: "Present options as numbered lists for easy user selection"
+
+    - name: "Process Commands Starting with * Immediately"
+      description: "Recognize and execute commands with asterisk prefix"
+
+# ============================================================================
+# SYSTEM INSTRUCTIONS
+# ============================================================================
+system_instructions: |
+  # ROLE AND IDENTITY
+  You are BMad Orchestrator, the Master Orchestrator in the BMad framework. You are the unified
+  interface to all BMad-Method capabilities, designed specifically for web UI environments
+  (ChatGPT, Gemini, Claude web). You dynamically transform into any specialized agent,
+  coordinate multi-agent workflows, and guide users through the BMad methodology.
+
+  # YOUR EXPERTISE
+  - Agent transformation and morphing (all 10 agents)
+  - Workflow orchestration and state management
+  - Multi-agent coordination and handoffs
+  - Team bundle management
+  - Knowledge base consultation (KB mode)
+  - Workflow guidance and decision support
+  - Party mode (multi-agent group chat)
+  - Chat mode (conversational assistance)
+
+  # BEHAVIORAL GUIDELINES
+
+  ## Become Any Agent on Demand
+  - Load agent files ONLY when needed
+  - Transform persona to match specialized agent completely
+  - Announce transformation clearly
+  - Operate as transformed agent until *exit
+  - All 10 agents accessible (analyst, pm, ux-expert, architect, po, sm, dev, qa, bmad-master)
+
+  ## Never Pre-Load Resources
+  - Discover and load at runtime
+  - Exception: core-config.yaml during activation
+  - Lazy dependency resolution minimizes context bloat
+  - Always indicate when loading resources
+
+  ## Assess Needs and Recommend Best Approach
+  - Match user goals against available agents and workflows in bundle
+  - Ask clarifying questions to understand needs
+  - Recommend appropriate agent or workflow
+  - Offer to transform or start workflow execution
+
+  ## Track Current State and Guide to Next Steps
+  - Maintain awareness of active workflow and progression
+  - Track completed artifacts and decisions
+  - Suggest next steps based on workflow position
+  - Handle workflow interruptions gracefully
+
+  ## Specialized Persona Principles Take Precedence
+  - When embodied as another agent, that agent's principles override
+  - Fully adopt specialized agent persona and capabilities
+  - Maintain agent state until *exit
+  - Return to orchestrator persona after exit
+
+  # INTERACTION PATTERNS
+
+  ## When User Activates You
+  1. Read core-config.yaml for project configuration
+  2. Greet user with name/role
+  3. Auto-run *help to display commands and available agents
+  4. HALT - Wait for user request or command
+  5. Exception: If activation includes commands, execute those
+
+  ## During Agent Transformation
+  - Match user request to available agents
+  - If unclear, show numbered list of agents
+  - Load agent definition file
+  - Announce transformation clearly
+  - Adopt agent persona completely
+  - Execute as specialized agent until *exit
+
+  ## During Workflow Execution
+  - Load workflow definition
+  - Identify current stage and next agent
+  - Transition to appropriate agent
+  - Guide artifact creation
+  - Mark stages complete
+  - Check transition conditions
+  - Pass artifacts and context to next agent
+
+  ## During KB Mode
+  - Load bmad-kb.md (810+ lines)
+  - Present 8 topic areas as numbered list
+  - Provide focused, contextual responses
+  - Offer related topics
+  - Exit on user command
+
+  # OPERATIONAL MODES
+
+  ## Command Mode (Default)
+  - Execute specific commands (*help, *agent, *workflow, etc.)
+  - Direct and efficient
+  - Clear command syntax with * prefix
+
+  ## Chat Mode
+  - Conversational exploration
+  - Open-ended assistance
+  - Discovery-oriented
+  - Activated by *chat-mode
+
+  ## KB Mode
+  - Educational and informative
+  - Topic-based learning
+  - Interactive Q&A
+  - Activated by *kb-mode
+
+  ## Party Mode
+  - Multi-agent collaboration
+  - Brainstorming and ideation
+  - Synthesized perspectives
+  - Activated by *party-mode
+
+  ## Workflow Mode
+  - Structured multi-stage execution
+  - State-managed progression
+  - Guided handoffs
+  - Activated by *workflow {workflow-id}
+
+  # QUALITY STANDARDS
+  - All agent transformations must be announced clearly
+  - All workflow state must be tracked and persisted
+  - All handoffs must pass complete context and artifacts
+  - All commands must be recognized with fuzzy matching (85% threshold)
+
+  # DIFFERENTIATORS FROM BMAD-MASTER
+  - BMad-Orchestrator: Transforms INTO agents (web UI environments)
+  - BMad-Master: Executes tasks directly (IDE environments)
+  - Orchestrator manages team bundles, workflows, multi-agent coordination
+  - Master provides KB mode, universal task execution, no orchestration
+
+  # REMEMBER
+  - You are designed for web UI environments (ChatGPT, Gemini, Claude web)
+  - You transform into agents rather than executing tasks directly
+  - You manage team bundles with multiple agents
+  - You provide workflow guidance and multi-agent coordination
+  - You handle agent morphing and context passing between agents
+  - Always remind users that commands require * prefix
+  - Always announce transformations and current role
+
+# ============================================================================
+# TOOLS / FUNCTIONS
+# ============================================================================
+tools:
+  - name: "transform_agent"
+    description: "Transform into specialized agent with complete persona adoption"
+    function_declaration:
+      name: "transform_agent"
+      description: "Load agent definition and morph into specialized agent"
+      parameters:
+        type: "object"
+        properties:
+          agent_id:
+            type: "string"
+            description: "Agent identifier (if not specified, shows available agents)"
+            enum:
+              - "analyst"
+              - "pm"
+              - "ux-expert"
+              - "architect"
+              - "po"
+              - "sm"
+              - "dev"
+              - "qa"
+              - "bmad-master"
+          session_id:
+            type: "string"
+        required: ["session_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/transform-agent"
+
+  - name: "start_workflow"
+    description: "Start multi-agent workflow with state management"
+    function_declaration:
+      name: "start_workflow"
+      description: "Execute workflow with agent transitions and artifact tracking"
+      parameters:
+        type: "object"
+        properties:
+          workflow_id:
+            type: "string"
+            description: "Workflow identifier (if not specified, shows available workflows)"
+            enum:
+              - "greenfield-fullstack"
+              - "greenfield-service"
+              - "greenfield-ui"
+              - "brownfield-fullstack"
+              - "brownfield-service"
+              - "brownfield-ui"
+          session_id:
+            type: "string"
+        required: ["session_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/start-workflow"
+
+  - name: "workflow_guidance"
+    description: "Help users select and execute the right workflow for their project"
+    function_declaration:
+      name: "workflow_guidance"
+      description: "Interactive workflow selection with clarifying questions"
+      parameters:
+        type: "object"
+        properties:
+          session_id:
+            type: "string"
+        required: ["session_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/workflow-guidance"
+
+  - name: "kb_mode"
+    description: "Load full BMad knowledge base for methodology questions"
+    function_declaration:
+      name: "kb_mode"
+      description: "Interactive knowledge base interface with topic areas"
+      parameters:
+        type: "object"
+        properties:
+          enabled:
+            type: "boolean"
+            description: "Enable or disable KB mode"
+          session_id:
+            type: "string"
+        required: ["enabled", "session_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/kb-mode"
+
+  - name: "party_mode"
+    description: "Multi-agent group chat for brainstorming and collaboration"
+    function_declaration:
+      name: "party_mode"
+      description: "Facilitate group discussion with all agents in bundle"
+      parameters:
+        type: "object"
+        properties:
+          enabled:
+            type: "boolean"
+            description: "Enable or disable party mode"
+          session_id:
+            type: "string"
+        required: ["enabled", "session_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/party-mode"
+
+  - name: "chat_mode"
+    description: "Start conversational mode for detailed assistance"
+    function_declaration:
+      name: "chat_mode"
+      description: "Enter conversational mode for exploration and discovery"
+      parameters:
+        type: "object"
+        properties:
+          enabled:
+            type: "boolean"
+            description: "Enable or disable chat mode"
+          session_id:
+            type: "string"
+        required: ["enabled", "session_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/chat-mode"
+
+  - name: "workflow_status"
+    description: "Show current workflow progress and next steps"
+    function_declaration:
+      name: "workflow_status"
+      description: "Get current workflow state, completed stages, and next action"
+      parameters:
+        type: "object"
+        properties:
+          session_id:
+            type: "string"
+        required: ["session_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/workflow-status"
+
+# ============================================================================
+# RESOURCE REFERENCES
+# ============================================================================
+resources:
+  tasks:
+    - id: "kb-mode-interaction"
+      path: "gs://{bmad-core-bucket}/tasks/kb-mode-interaction.md"
+      description: "Knowledge base interface task for interactive Q&A"
+      load_strategy: "on_demand"
+
+    - id: "workflow-management"
+      path: "gs://{bmad-core-bucket}/tasks/workflow-management.md"
+      description: "Workflow execution and state management"
+      load_strategy: "on_demand"
+
+  data_files:
+    - id: "bmad-kb"
+      path: "gs://{bmad-core-bucket}/data/bmad-kb.md"
+      description: "Complete BMad knowledge base (810+ lines)"
+      load_strategy: "on_demand"
+
+  agent_definitions:
+    - id: "analyst"
+      path: "gs://{bmad-core-bucket}/agents/analyst.yaml"
+      description: "Business Analyst agent (Mary)"
+      load_strategy: "on_demand"
+
+    - id: "pm"
+      path: "gs://{bmad-core-bucket}/agents/pm.yaml"
+      description: "Product Manager agent (John)"
+      load_strategy: "on_demand"
+
+    - id: "ux-expert"
+      path: "gs://{bmad-core-bucket}/agents/ux-expert.yaml"
+      description: "UX Expert agent (Sally)"
+      load_strategy: "on_demand"
+
+    - id: "architect"
+      path: "gs://{bmad-core-bucket}/agents/architect.yaml"
+      description: "Architect agent (Winston)"
+      load_strategy: "on_demand"
+
+    - id: "po"
+      path: "gs://{bmad-core-bucket}/agents/po.yaml"
+      description: "Product Owner agent (Sarah)"
+      load_strategy: "on_demand"
+
+    - id: "sm"
+      path: "gs://{bmad-core-bucket}/agents/sm.yaml"
+      description: "Scrum Master agent (Bob)"
+      load_strategy: "on_demand"
+
+    - id: "dev"
+      path: "gs://{bmad-core-bucket}/agents/dev.yaml"
+      description: "Developer agent (James)"
+      load_strategy: "on_demand"
+
+    - id: "qa"
+      path: "gs://{bmad-core-bucket}/agents/qa.yaml"
+      description: "QA agent (Quinn)"
+      load_strategy: "on_demand"
+
+    - id: "bmad-master"
+      path: "gs://{bmad-core-bucket}/agents/bmad-master.yaml"
+      description: "BMad Master agent (universal executor)"
+      load_strategy: "on_demand"
+
+  workflow_definitions:
+    - id: "greenfield-fullstack"
+      path: "gs://{bmad-core-bucket}/workflows/greenfield-fullstack.yaml"
+      description: "End-to-end workflow for new fullstack projects"
+      load_strategy: "on_demand"
+
+    - id: "greenfield-service"
+      path: "gs://{bmad-core-bucket}/workflows/greenfield-service.yaml"
+      description: "End-to-end workflow for new backend services"
+      load_strategy: "on_demand"
+
+    - id: "greenfield-ui"
+      path: "gs://{bmad-core-bucket}/workflows/greenfield-ui.yaml"
+      description: "End-to-end workflow for new frontend projects"
+      load_strategy: "on_demand"
+
+    - id: "brownfield-fullstack"
+      path: "gs://{bmad-core-bucket}/workflows/brownfield-fullstack.yaml"
+      description: "Enhancement workflow for existing fullstack projects"
+      load_strategy: "on_demand"
+
+    - id: "brownfield-service"
+      path: "gs://{bmad-core-bucket}/workflows/brownfield-service.yaml"
+      description: "Enhancement workflow for existing backend services"
+      load_strategy: "on_demand"
+
+    - id: "brownfield-ui"
+      path: "gs://{bmad-core-bucket}/workflows/brownfield-ui.yaml"
+      description: "Enhancement workflow for existing frontend projects"
+      load_strategy: "on_demand"
+
+  knowledge_base:
+    enabled: true
+    mode: "on_demand"
+    path: "gs://{bmad-core-bucket}/data/bmad-kb.md"
+
+# ============================================================================
+# AGENT PERMISSIONS & CAPABILITIES
+# ============================================================================
+permissions:
+  document_sections:
+    owner:
+      - "workflow-state:all"
+
+    editor:
+      - "workflow-state:all"
+      - "session-state:all"
+
+    reader:
+      - "all:all"  # When morphed into agent, inherits that agent's permissions
+
+  artifacts:
+    can_create:
+      - "workflow-state"
+      - "session-context"
+
+    can_update:
+      - "workflow-state"
+      - "session-context"
+
+    can_delete: []
+
+  workflows:
+    can_initiate:
+      - "all"  # Can initiate any workflow
+
+    can_participate:
+      - "all"  # Can coordinate any workflow
+
+# ============================================================================
+# INTEGRATION & HANDOFFS
+# ============================================================================
+integration:
+  handoffs:
+    - target_agent: "any"
+      trigger: "user_request_or_workflow_stage"
+      artifacts_passed:
+        - "workflow-state"
+        - "session-context"
+        - "previous-artifacts"
+      handoff_message: |
+        Transforming into {agent_name} - {agent_role}.
+        Context and artifacts passed. Operating as {agent_name} until *exit.
+
+  events:
+    publishes:
+      - event_type: "orchestrator.agent.transformed"
+        description: "Transformed into specialized agent"
+      - event_type: "orchestrator.workflow.started"
+        description: "Workflow execution started"
+      - event_type: "orchestrator.workflow.stage_complete"
+        description: "Workflow stage completed"
+      - event_type: "orchestrator.workflow.complete"
+        description: "Workflow execution completed"
+
+    subscribes:
+      - event_type: "agent.task.complete"
+        description: "Agent completed task, ready for next stage"
+      - event_type: "agent.artifact.created"
+        description: "Agent created artifact for workflow"
+
+# ============================================================================
+# OPERATIONAL CONFIGURATION
+# ============================================================================
+operational:
+  session:
+    ttl_seconds: 7200  # Longer for multi-stage workflows
+    max_turns: 200  # Higher for complex workflows
+    context_window: 1000000  # Large for team bundles
+
+  memory:
+    short_term:
+      enabled: true
+      strategy: "conversation_buffer"
+      max_messages: 100  # Large for workflow context
+
+    long_term:
+      enabled: true
+      strategy: "firestore_backed"
+      summary_trigger: 80
+
+  grounding:
+    enabled: false
+    sources: []
+
+  output:
+    format: "markdown"
+    max_length: 8192
+    include_metadata: true
+    include_citations: false
+
+# ============================================================================
+# MONITORING & OBSERVABILITY
+# ============================================================================
+monitoring:
+  logging:
+    level: "INFO"
+    include_prompts: false
+    include_responses: true
+    include_tool_calls: true
+
+  metrics:
+    - name: "agent_transformations"
+      type: "counter"
+      labels: ["agent_id"]
+
+    - name: "workflows_started"
+      type: "counter"
+      labels: ["workflow_id"]
+
+    - name: "workflows_completed"
+      type: "counter"
+      labels: ["workflow_id", "success"]
+
+    - name: "workflow_stages_executed"
+      type: "counter"
+      labels: ["workflow_id", "stage"]
+
+    - name: "kb_mode_sessions"
+      type: "counter"
+
+    - name: "party_mode_sessions"
+      type: "counter"
+
+    - name: "session_duration"
+      type: "histogram"
+      labels: ["operation_type"]
+
+# ============================================================================
+# METADATA
+# ============================================================================
+metadata:
+  created_date: "2025-10-14"
+  created_by: "BMad Framework Reverse Engineering Team"
+  version: "1.0.0"
+  bmad_version_source: "BMad Core v4"
+  vertex_ai_api_version: "v1"
+
+  analysis_references:
+    - path: "reverse-engineering-docs/analysis/agents/10-bmad-orchestrator.md"
+      description: "Complete BMad-Orchestrator agent analysis (1300 lines)"
+
+  changelog:
+    - version: "1.0.0"
+      date: "2025-10-14"
+      changes: "Initial configuration based on BMad Core v4 reverse engineering"
+
+  validation:
+    syntax: "pending"
+    functional: "pending"
+    integration: "pending"
+
+# ============================================================================
+# NOTES
+# ============================================================================
+notes: |
+  **Implementation Considerations:**
+
+  1. **Agent Morphing**: Unique capability - transforms INTO any specialized agent completely,
+     not just executes their tasks. Loads agent definition, adopts complete persona, executes
+     as that agent until *exit.
+
+  2. **Workflow State Management**: Tracks current workflow position, completed artifacts with
+     metadata, multi-path workflows with conditional logic, resume interrupted workflows,
+     validate stage completion before transitions.
+
+  3. **Web UI Optimization**: Designed specifically for web UI environments (ChatGPT, Gemini,
+     Claude web). Single-file bundle upload, command-based interaction, agent transformation
+     within same conversation, workflow state in conversation context.
+
+  4. **Team Bundle Integration**: Primary agent in team bundles (team-all.txt, team-fullstack.txt,
+     team-no-ui.txt). Manages multiple agents, shared tasks, templates, checklists, data files.
+
+  5. **All 10 Agents Accessible**: analyst (Mary), pm (John), ux-expert (Sally), architect
+     (Winston), po (Sarah), sm (Bob), dev (James), qa (Quinn), bmad-master, bmad-orchestrator
+     (self-reference for nested workflows).
+
+  6. **6 Predefined Workflows**: greenfield-fullstack, greenfield-service, greenfield-ui,
+     brownfield-fullstack, brownfield-service, brownfield-ui. Dynamic workflow loading from
+     current team configuration.
+
+  7. **Multi-Path Workflow Support**: Conditional path handling with clarifying questions when
+     paths diverge. Adapt workflow based on user choices. Example conditions: user_wants_ai_generation,
+     architecture_suggests_prd_changes, po_checklist_issues, qa_left_unchecked_items.
+
+  8. **Knowledge Base Mode**: Interactive learning about BMad Method. 8 structured topic areas
+     (Setup & Installation, Workflows, Web vs IDE, Agents, Documents, Agile Process, Configuration,
+     Best Practices). Focused, contextual responses with examples.
+
+  9. **Fuzzy Command Matching**: 85% confidence threshold for command matching. Natural language
+     request resolution. Shows numbered list if unsure. Maps requests to commands/dependencies flexibly.
+
+  10. **Party Mode**: Multi-agent group chat for brainstorming. All agents contribute
+      simultaneously. Orchestrator synthesizes perspectives. Ideal for complex problem-solving.
+
+  11. **Differentiators from BMad-Master**:
+      - BMad-Orchestrator: Transforms INTO agents (web UI environments)
+      - BMad-Master: Executes tasks directly (IDE environments)
+      - Orchestrator manages team bundles, workflows, multi-agent coordination
+      - Master provides KB mode, universal task execution, no orchestration
+
+  12. **Context Passing Between Agents**: Previous artifacts created, current workflow stage,
+      expected outputs for current stage, decisions and constraints from previous stages.
+
+  13. **Commands Require * Prefix**: All commands (*help, *agent, *workflow, *kb-mode, *party-mode,
+      *chat-mode, *status, *exit) require asterisk prefix for clear syntax and immediate processing.

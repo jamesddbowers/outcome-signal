@@ -1,0 +1,121 @@
+# BMad Framework - Terraform Variables Example
+# Copy this file to terraform.tfvars and customize for your deployment
+#
+# Version: 1.0
+# Created: 2025-10-15
+
+# =============================================================================
+# PROJECT CONFIGURATION
+# =============================================================================
+
+project_id  = "bmad-production"    # Your GCP project ID
+region      = "us-central1"        # Primary deployment region
+zone        = "us-central1-a"      # Primary zone
+environment = "prod"               # dev, staging, or prod
+bmad_version = "4.0.0"             # BMad framework version
+
+# =============================================================================
+# VERTEX AI CONFIGURATION
+# =============================================================================
+
+vertex_ai_location = "us-central1"          # Vertex AI location
+vertex_ai_model    = "gemini-2.0-flash-001" # Default AI model
+enable_vertex_ai_search = true              # Enable KB Mode search
+
+# =============================================================================
+# AGENT TEMPERATURE SETTINGS
+# =============================================================================
+
+agent_temperature_creative    = 0.7  # For Analyst, UX Expert, Architect
+agent_temperature_analytical  = 0.5  # For PO, QA
+agent_temperature_balanced    = 0.6  # For PM, SM, Dev, BMad-Master
+agent_max_output_tokens       = 8192
+
+# =============================================================================
+# STORAGE CONFIGURATION
+# =============================================================================
+
+firestore_database_id    = "bmad-state"
+firestore_location_id    = "nam5"           # Multi-region: nam5, eur3
+storage_class            = "STANDARD"       # STANDARD, NEARLINE, COLDLINE
+enable_storage_versioning = true
+storage_lifecycle_age_days = 90             # Days before archiving old versions
+
+# =============================================================================
+# CLOUD RUN CONFIGURATION
+# =============================================================================
+
+cloud_run_min_instances = 0     # 0 for scale-to-zero
+cloud_run_max_instances = 10
+cloud_run_cpu           = 2     # 1, 2, 4, 6, 8
+cloud_run_memory        = "2Gi" # e.g., 512Mi, 1Gi, 2Gi, 4Gi
+cloud_run_timeout       = 300   # seconds
+cloud_run_ingress       = "all" # all, internal, internal-and-cloud-load-balancing
+
+# =============================================================================
+# CLOUD FUNCTIONS CONFIGURATION
+# =============================================================================
+
+cloud_functions_runtime = "python311" # python39, python310, python311, python312
+cloud_functions_memory  = 512         # MB
+cloud_functions_timeout = 540         # seconds (max: 540)
+
+# =============================================================================
+# NETWORKING CONFIGURATION
+# =============================================================================
+
+create_vpc            = false          # Create custom VPC (false = use default)
+vpc_name              = "bmad-vpc"     # Only if create_vpc = true
+subnet_cidr           = "10.0.0.0/24"  # Only if create_vpc = true
+enable_vpc_connector  = false          # For private resource access
+
+# =============================================================================
+# MONITORING CONFIGURATION
+# =============================================================================
+
+enable_cloud_monitoring = true
+enable_cloud_logging    = true
+log_retention_days      = 30
+enable_error_reporting  = true
+enable_cloud_trace      = true
+
+# =============================================================================
+# BACKUP CONFIGURATION
+# =============================================================================
+
+enable_firestore_backup         = true
+firestore_backup_schedule       = "0 2 * * *"  # Daily at 2 AM
+firestore_backup_retention_days = 30            # Days to keep backups
+
+# =============================================================================
+# SECURITY CONFIGURATION
+# =============================================================================
+
+enable_secret_manager = true
+allowed_ip_ranges     = []              # Empty = all IPs, or ["10.0.0.0/8"]
+enable_binary_authorization = false     # For production, set to true
+
+# =============================================================================
+# COST OPTIMIZATION
+# =============================================================================
+
+enable_cost_alerts      = true
+monthly_budget_amount   = 1000          # USD
+budget_alert_thresholds = [0.5, 0.8, 0.9, 1.0]  # Alert at 50%, 80%, 90%, 100%
+
+# =============================================================================
+# LABELS AND TAGS
+# =============================================================================
+
+additional_labels = {
+  "team"        = "platform"
+  "cost-center" = "engineering"
+  "owner"       = "devops"
+}
+
+# =============================================================================
+# NOTIFICATIONS
+# =============================================================================
+
+notification_email    = "alerts@example.com"  # Email for alerts
+notification_channels = []                     # Additional notification channel IDs

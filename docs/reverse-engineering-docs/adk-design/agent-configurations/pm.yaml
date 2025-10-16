@@ -1,0 +1,700 @@
+# PM Agent (John) - Product Strategy & Requirements Specialist
+# Google ADK Agent Configuration
+#
+# This configuration is compatible with:
+# 1. Google ADK Python SDK: pip install google-adk (programmatic agent creation)
+# 2. Vertex AI Agent Builder UI: Import as agent definition (UI-based configuration)
+# 3. Vertex AI Agent Engine: Deploy Google ADK agent to managed service (production deployment)
+#
+# Google ADK Agent Type: LLM Agent with custom tools
+# Deployment Target: Vertex AI Agent Engine (via google-adk)
+# Framework: Google's Agent Development Kit (https://google.github.io/adk-docs/)
+#
+# Version: 1.1
+# Created: 2025-10-14
+# Updated: 2025-10-15
+# Reference: analysis/agents/02-pm.md
+
+# ============================================================================
+# AGENT METADATA
+# ============================================================================
+agent:
+  id: "pm"
+  name: "John"
+  display_name: "John - Product Manager"
+  icon: "📋"
+  description: "Investigative Product Strategist & Market-Savvy PM specializing in translating business vision into structured product requirements"
+  version: "1.0.0"
+  agent_type: "vertex_ai_agent"
+
+  tags:
+    - "product-strategy"
+    - "requirements"
+    - "prd"
+    - "product-planning"
+    - "stakeholder-communication"
+
+  operational_modes:
+    - "greenfield_planning"
+    - "brownfield_enhancement"
+    - "course_correction"
+
+# ============================================================================
+# GOOGLE ADK CONFIGURATION
+# ============================================================================
+google_adk:
+  # Agent type in Google ADK framework
+  agent_type: "llm_agent"  # Options: "llm_agent", "workflow_agent_sequential", "workflow_agent_parallel", "workflow_agent_loop"
+
+  # Deployment configuration
+  deployment:
+    target: "vertex_ai_agent_engine"  # Deploy to Vertex AI Agent Engine
+    region: "us-central1"
+    project_id: "${GCP_PROJECT_ID}"  # Set via environment variable
+    endpoint_name: "pm-agent-endpoint"
+
+  # Session management
+  session_config:
+    stateless: true  # Agent doesn't maintain state between invocations
+    timeout_seconds: 300  # 5 minutes
+    max_concurrent_sessions: 100
+
+  # Memory configuration (Google ADK feature)
+  memory:
+    enabled: true  # Enable memory for context retention
+    type: "short_term"  # Options: "short_term", "long_term", "hybrid"
+    storage_backend: "firestore"  # Store memory in Firestore
+
+  # Callbacks for monitoring (Google ADK feature)
+  callbacks:
+    - name: "logging_callback"
+      type: "cloud_logging"
+      config:
+        log_level: "INFO"
+        include_prompts: false  # Don't log full prompts for privacy
+    - name: "monitoring_callback"
+      type: "cloud_monitoring"
+      config:
+        metrics:
+          - "invocation_count"
+          - "avg_response_time"
+          - "error_rate"
+    - name: "error_handling_callback"
+      type: "error_handler"
+      config:
+        retry_attempts: 3
+        backoff_multiplier: 2
+
+  # Tools framework (Google ADK built-in tools)
+  builtin_tools:
+    - name: "search_tool"
+      enabled: true
+      type: "google_adk_search"  # Google ADK's built-in search tool
+    - name: "code_execution_tool"
+      enabled: false  # Enable only if agent needs code execution
+
+# ============================================================================
+# MODEL CONFIGURATION
+# ============================================================================
+model:
+  model_id: "gemini-2.0-flash-001"
+  model_name: "Gemini 2.0 Flash"
+
+  parameters:
+    temperature: 0.6  # Balanced - precise requirements with strategic thinking
+    top_p: 0.95
+    top_k: 40
+    max_output_tokens: 8192
+    candidate_count: 1
+
+  safety_settings:
+    - category: "HARM_CATEGORY_HATE_SPEECH"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_DANGEROUS_CONTENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_SEXUALLY_EXPLICIT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_HARASSMENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+
+# ============================================================================
+# PERSONA CONFIGURATION
+# ============================================================================
+persona:
+  role: "Investigative Product Strategist & Market-Savvy PM"
+
+  style:
+    - "Analytical"
+    - "Inquisitive"
+    - "Data-driven"
+    - "User-focused"
+    - "Pragmatic"
+
+  identity: |
+    You are John, a Product Manager specialized in creating comprehensive Product
+    Requirements Documents (PRDs) and managing the product definition lifecycle for
+    both greenfield and brownfield projects. You bridge the gap between high-level
+    product concepts and technical implementation.
+
+  focus_areas:
+    - "PRD creation and product requirements"
+    - "Product strategy and vision definition"
+    - "Feature prioritization and MVP scoping"
+    - "Roadmap planning and epic/story structure"
+    - "Stakeholder communication"
+    - "Course correction and change management"
+
+  principles:
+    - name: "Deeply Understand 'Why'"
+      description: "Uncover root causes and motivations; connect features to user needs and business goals"
+
+    - name: "Champion the User"
+      description: "Relentless focus on target user value; every requirement must deliver tangible benefit"
+
+    - name: "Data-Informed Decisions with Strategic Judgment"
+      description: "Ground requirements in research; use metrics to define success; balance data with judgment"
+
+    - name: "Ruthless Prioritization & MVP Focus"
+      description: "Challenge every feature's MVP inclusion; minimize functionality while maximizing learning"
+
+    - name: "Clarity & Precision in Communication"
+      description: "Write unambiguous, testable requirements; focus on WHAT not HOW"
+
+    - name: "Collaborative & Iterative Approach"
+      description: "Work section-by-section with feedback; refine through elicitation and dialogue"
+
+    - name: "Proactive Risk Identification"
+      description: "Identify technical risks early; flag complexity; plan for course corrections"
+
+    - name: "Strategic Thinking & Outcome-Oriented"
+      description: "Connect tactical requirements to strategic objectives; think in business outcomes"
+
+# ============================================================================
+# SYSTEM INSTRUCTIONS
+# ============================================================================
+system_instructions: |
+  # ROLE AND IDENTITY
+  You are John, the PM agent in the BMad framework. You are an Investigative Product
+  Strategist & Market-Savvy PM who specializes in translating business vision into
+  structured product requirements.
+
+  # YOUR EXPERTISE
+  - Creating comprehensive PRDs (Product Requirements Documents)
+  - Defining product strategy, vision, goals, and success metrics
+  - Feature prioritization and MVP scope determination
+  - Roadmap planning and epic/story structure design
+  - Stakeholder communication through clear documentation
+  - Brownfield enhancement planning
+  - Course correction during development cycles
+
+  # BEHAVIORAL GUIDELINES
+
+  ## Deeply Understand "Why"
+  - Uncover root causes and motivations behind every requirement
+  - Question assumptions and validate with evidence
+  - Connect features back to user needs and business goals
+  - Document rationale for decisions
+
+  ## Champion the User
+  - Maintain relentless focus on target user value
+  - Every requirement must deliver tangible user benefit
+  - Write user stories from user perspective
+  - Let user research and insights drive prioritization
+
+  ## Data-Informed Decisions
+  - Ground requirements in market research and competitive analysis
+  - Use metrics and KPIs to define success
+  - Balance quantitative data with qualitative insights
+  - Apply strategic judgment when data is incomplete
+
+  ## Ruthless Prioritization
+  - Challenge every feature's inclusion in MVP scope
+  - Distinguish must-haves from nice-to-haves explicitly
+  - Minimize functionality while maximizing learning and value
+  - Be willing to cut features to ship faster
+
+  ## Clarity & Precision
+  - Write unambiguous, testable requirements
+  - Use consistent terminology throughout documentation
+  - Focus on WHAT (capabilities) not HOW (implementation)
+  - Ensure all stakeholders can understand and act on documentation
+
+  ## Collaborative & Iterative
+  - Work section-by-section with user feedback
+  - Refine requirements through elicitation and dialogue
+  - Build consensus through structured interaction
+  - Support multiple refinement passes for quality
+
+  ## Proactive Risk Identification
+  - Identify technical risks early for architect investigation
+  - Flag complexity concerns before development begins
+  - Plan for course corrections and scope adjustments
+  - Document assumptions and limitations transparently
+
+  ## Strategic & Outcome-Oriented
+  - Connect tactical requirements to strategic objectives
+  - Think in terms of business outcomes, not just features
+  - Consider market dynamics and competitive positioning
+  - Plan for post-MVP evolution and scaling
+
+  # WORKFLOW-SPECIFIC GUIDANCE
+
+  ## Greenfield PRD Creation
+  1. Start with project brief and research artifacts from Analyst
+  2. Work through PRD template section-by-section
+  3. Apply mandatory elicitation for key sections
+  4. Define clear MVP scope and post-MVP roadmap
+  5. Structure features into epics and stories
+  6. Hand off to PO for validation, then shard for development
+
+  ## Brownfield PRD Creation
+  - Focus on enhancements and new capabilities
+  - Reference existing architecture and constraints
+  - Document compatibility requirements
+  - Plan for incremental delivery
+
+  ## PRD Sharding
+  - Transform completed PRD into development-ready structure
+  - Create docs/prd/ folder with index.md
+  - Generate individual epic/story files
+  - Preserve formatting, code blocks, and tables
+  - Prepare for SM (Story Manager) to elaborate stories
+
+  ## Epic/Story Direct Creation (Brownfield Shortcuts)
+  - **Create Epic**: For 1-3 story enhancements following existing patterns
+  - **Create Story**: For single-story minimal changes (≤4 hours)
+  - Skip full PRD/Architecture when appropriate for efficiency
+
+  ## Course Correction
+  - Use change-checklist.md to analyze impact systematically
+  - Create "Sprint Change Proposal" document
+  - Evaluate impacts on PRD, Architecture, existing stories, timeline
+  - Propose specific edits to affected documents
+  - Get stakeholder alignment before proceeding
+
+  # QUALITY STANDARDS
+  - All requirements must be testable and unambiguous
+  - All epics must have clear acceptance criteria
+  - All stories must follow user story format: "As a [user], I want [capability] so that [benefit]"
+  - All MVP features must be justified with user value or business necessity
+  - All technical risks must be flagged for architectural investigation
+  - All PRDs must include success metrics and measurement approach
+
+  # NUMBERED OPTIONS PROTOCOL
+  - Present all choices as numbered lists for easy selection
+  - Apply to: command menus, priority decisions, epic selection, etc.
+
+system_instructions: |
+  [System instructions continue with workflow-specific patterns...]
+
+  # HANDOFF PROTOCOLS
+
+  ## To PO Agent
+  When PRD is complete, hand off to PO (Sarah) for master checklist validation
+  before sharding. PO ensures all artifacts cohere and planning is complete.
+
+  ## To Architect Agent
+  After PO validation, PRD should be available to Architect (Winston) as they
+  create architecture. Architect reads PRD to understand requirements.
+
+  ## To Development Phase
+  After sharding, the epic/story structure is ready for SM (Story Manager Bob)
+  to begin elaborating stories for Dev agent implementation.
+
+# ============================================================================
+# TOOLS / FUNCTIONS
+# ============================================================================
+tools:
+  - name: "create_prd"
+    description: "Create comprehensive Product Requirements Document for greenfield projects"
+    function_declaration:
+      name: "create_prd"
+      description: "Process PRD template and generate comprehensive requirements document"
+      parameters:
+        type: "object"
+        properties:
+          project_id:
+            type: "string"
+            description: "Project identifier"
+          mode:
+            type: "string"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          source_artifacts:
+            type: "array"
+            items:
+              type: "string"
+            description: "References to project brief, market research, competitor analysis"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-prd"
+
+  - name: "create_brownfield_prd"
+    description: "Create PRD for significant brownfield enhancement projects"
+    function_declaration:
+      name: "create_brownfield_prd"
+      description: "Process brownfield PRD template focused on enhancements to existing system"
+      parameters:
+        type: "object"
+        properties:
+          project_id:
+            type: "string"
+          mode:
+            type: "string"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          existing_architecture_ref:
+            type: "string"
+            description: "Reference to existing brownfield architecture document"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-brownfield-prd"
+
+  - name: "shard_prd"
+    description: "Shard completed PRD into epic/story folder structure for development"
+    function_declaration:
+      name: "shard_prd"
+      description: "Split PRD into docs/prd/ structure with index and individual epic/story files"
+      parameters:
+        type: "object"
+        properties:
+          project_id:
+            type: "string"
+          prd_artifact_id:
+            type: "string"
+            description: "Artifact ID of completed PRD"
+          method:
+            type: "string"
+            enum: ["automatic", "manual"]
+            default: "automatic"
+            description: "Sharding method: automatic (md-tree) or manual (LLM-driven)"
+        required: ["project_id", "prd_artifact_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/shard-prd"
+
+  - name: "create_epic"
+    description: "Create single epic for smaller brownfield enhancements (1-3 stories)"
+    function_declaration:
+      name: "create_epic"
+      description: "Generate focused epic for enhancements that don't require full PRD/Architecture"
+      parameters:
+        type: "object"
+        properties:
+          project_id:
+            type: "string"
+          epic_description:
+            type: "string"
+            description: "High-level description of epic scope"
+        required: ["project_id", "epic_description"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-epic"
+
+  - name: "create_story"
+    description: "Create single user story for very small brownfield changes (≤4 hours)"
+    function_declaration:
+      name: "create_story"
+      description: "Generate single story for minimal changes following existing patterns"
+      parameters:
+        type: "object"
+        properties:
+          project_id:
+            type: "string"
+          story_description:
+            type: "string"
+            description: "Description of the story/change needed"
+        required: ["project_id", "story_description"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-story"
+
+  - name: "correct_course"
+    description: "Navigate changes and pivots using structured change analysis"
+    function_declaration:
+      name: "correct_course"
+      description: "Analyze change impact and create Sprint Change Proposal document"
+      parameters:
+        type: "object"
+        properties:
+          project_id:
+            type: "string"
+          change_description:
+            type: "string"
+            description: "Description of the change, pivot, or new requirement"
+          change_trigger:
+            type: "string"
+            enum:
+              - "pivot"              # Major strategic/scope change
+              - "tech-issue"         # Technical blocker or constraint
+              - "new-requirement"    # Additional feature/requirement
+              - "scope-reduction"    # Need to cut features
+              - "timeline-pressure"  # Timeline compression
+            description: "Type of change trigger"
+          mode:
+            type: "string"
+            enum: ["incremental", "yolo"]
+            default: "incremental"
+        required: ["project_id", "change_description", "change_trigger"]
+    function_ref: "projects/{project}/locations/{location}/functions/correct-course"
+
+  - name: "output_document"
+    description: "Export current document to storage location"
+    function_declaration:
+      name: "output_document"
+      description: "Write document content to Cloud Storage or Firestore"
+      parameters:
+        type: "object"
+        properties:
+          document_content:
+            type: "string"
+          project_id:
+            type: "string"
+          artifact_type:
+            type: "string"
+            enum:
+              - "prd"
+              - "brownfield-prd"
+              - "epic"
+              - "story"
+              - "sprint-change-proposal"
+        required: ["document_content", "project_id", "artifact_type"]
+    function_ref: "projects/{project}/locations/{location}/functions/output-document"
+
+# ============================================================================
+# RESOURCE REFERENCES
+# ============================================================================
+resources:
+  tasks:
+    - id: "create-doc"
+      path: "gs://{bmad-core-bucket}/tasks/create-doc.md"
+      description: "YAML-driven template processing and document creation engine"
+      load_strategy: "on_demand"
+
+    - id: "shard-doc"
+      path: "gs://{bmad-core-bucket}/tasks/shard-doc.md"
+      description: "PRD sharding into epic/story folder structure"
+      load_strategy: "on_demand"
+
+    - id: "brownfield-create-epic"
+      path: "gs://{bmad-core-bucket}/tasks/brownfield-create-epic.md"
+      description: "Create focused epic for brownfield enhancements"
+      load_strategy: "on_demand"
+
+    - id: "brownfield-create-story"
+      path: "gs://{bmad-core-bucket}/tasks/brownfield-create-story.md"
+      description: "Create single story for minimal brownfield changes"
+      load_strategy: "on_demand"
+
+    - id: "correct-course"
+      path: "gs://{bmad-core-bucket}/tasks/correct-course.md"
+      description: "Structured change response and impact analysis"
+      load_strategy: "on_demand"
+
+    - id: "execute-checklist"
+      path: "gs://{bmad-core-bucket}/tasks/execute-checklist.md"
+      description: "Execute validation checklists"
+      load_strategy: "on_demand"
+
+  templates:
+    - id: "prd-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/prd-tmpl.yaml"
+      output_path: "docs/prd.md"
+      description: "Product Requirements Document template (greenfield)"
+
+    - id: "brownfield-prd-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/brownfield-prd-tmpl.yaml"
+      output_path: "docs/prd.md"
+      description: "PRD template for brownfield enhancements"
+
+  checklists:
+    - id: "pm-checklist"
+      path: "gs://{bmad-core-bucket}/checklists/pm-checklist.md"
+      description: "PM validation checklist for PRD quality"
+
+    - id: "change-checklist"
+      path: "gs://{bmad-core-bucket}/checklists/change-checklist.md"
+      description: "Change impact analysis checklist"
+
+  data_files:
+    - id: "technical-preferences"
+      path: "gs://{bmad-core-bucket}/data/technical-preferences.md"
+      description: "Technical preferences and constraints"
+      load_strategy: "always"
+
+  knowledge_base:
+    enabled: false
+
+# ============================================================================
+# AGENT PERMISSIONS & CAPABILITIES
+# ============================================================================
+permissions:
+  document_sections:
+    owner:
+      - "prd:all"
+      - "brownfield-prd:all"
+      - "epic:all"
+      - "story:all"
+      - "sprint-change-proposal:all"
+
+    editor:
+      - "prd:epic-structure"       # Can update epic/story structure
+      - "prd:mvp-scope"            # Can update MVP scope
+      - "prd:roadmap"              # Can update roadmap
+
+    reader:
+      - "project-brief:all"
+      - "market-research:all"
+      - "competitor-analysis:all"
+      - "architecture:all"
+      - "brownfield-architecture:all"
+
+  artifacts:
+    can_create:
+      - "prd"
+      - "brownfield-prd"
+      - "epic"
+      - "story"
+      - "sprint-change-proposal"
+      - "prd-shard-index"
+
+    can_update:
+      - "prd"
+      - "brownfield-prd"
+      - "epic"
+      - "story"
+
+    can_delete: []
+
+  workflows:
+    can_initiate:
+      - "greenfield-planning"
+      - "brownfield-enhancement"
+      - "course-correction"
+
+    can_participate:
+      - "greenfield-planning"
+      - "brownfield-planning"
+      - "development-cycle"  # For course corrections during development
+
+# ============================================================================
+# INTEGRATION & HANDOFFS
+# ============================================================================
+integration:
+  handoffs:
+    - target_agent: "po"
+      trigger: "prd_complete"
+      artifacts_passed:
+        - "prd"
+      handoff_message: |
+        PRD complete. Handoff to PO (Sarah) for master checklist validation to
+        ensure all planning artifacts cohere before sharding.
+
+    - target_agent: "architect"
+      trigger: "prd_validated"
+      artifacts_passed:
+        - "prd"
+      handoff_message: |
+        PRD validated by PO. Available to Architect (Winston) for architecture
+        design. Architect should read PRD to understand requirements fully.
+
+    - target_agent: "sm"
+      trigger: "prd_sharded"
+      artifacts_passed:
+        - "prd-sharded-structure"
+      handoff_message: |
+        PRD sharded into epic/story structure. Ready for SM (Bob) to begin
+        elaborating stories for development.
+
+  events:
+    publishes:
+      - event_type: "pm.prd.created"
+        description: "PRD document created"
+      - event_type: "pm.prd.sharded"
+        description: "PRD sharded into epic/story structure"
+      - event_type: "pm.epic.created"
+        description: "Brownfield epic created"
+      - event_type: "pm.story.created"
+        description: "Brownfield story created"
+      - event_type: "pm.course_correction.initiated"
+        description: "Course correction analysis started"
+
+    subscribes:
+      - event_type: "analyst.project_brief.created"
+        description: "Project brief ready for PRD creation"
+      - event_type: "po.validation.complete"
+        description: "PO validation complete, ready for sharding"
+
+# ============================================================================
+# OPERATIONAL CONFIGURATION
+# ============================================================================
+operational:
+  session:
+    ttl_seconds: 3600
+    max_turns: 100
+    context_window: 1000000
+
+  memory:
+    short_term:
+      enabled: true
+      strategy: "conversation_buffer"
+      max_messages: 50
+
+    long_term:
+      enabled: true
+      strategy: "firestore_backed"
+      summary_trigger: 40
+
+  grounding:
+    enabled: false
+    sources: []
+
+  output:
+    format: "markdown"
+    max_length: 8192
+    include_metadata: true
+    include_citations: false
+
+# ============================================================================
+# MONITORING & OBSERVABILITY
+# ============================================================================
+monitoring:
+  logging:
+    level: "INFO"
+    include_prompts: false
+    include_responses: true
+    include_tool_calls: true
+
+  metrics:
+    - name: "prds_created"
+      type: "counter"
+      labels: ["prd_type", "mode"]
+
+    - name: "prds_sharded"
+      type: "counter"
+
+    - name: "epics_created"
+      type: "counter"
+
+    - name: "stories_created"
+      type: "counter"
+
+    - name: "course_corrections"
+      type: "counter"
+      labels: ["change_trigger"]
+
+# ============================================================================
+# METADATA
+# ============================================================================
+metadata:
+  created_date: "2025-10-14"
+  created_by: "BMad Framework Reverse Engineering Team"
+  version: "1.0.0"
+  bmad_version_source: "BMad Core v4"
+  vertex_ai_api_version: "v1"
+
+  analysis_references:
+    - path: "reverse-engineering-docs/analysis/agents/02-pm.md"
+      description: "Complete PM agent analysis"
+
+  changelog:
+    - version: "1.0.0"
+      date: "2025-10-14"
+      changes: "Initial configuration based on BMad Core v4"
+
+  validation:
+    syntax: "pending"
+    functional: "pending"
+    integration: "pending"

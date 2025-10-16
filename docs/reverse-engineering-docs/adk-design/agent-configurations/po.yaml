@@ -1,0 +1,547 @@
+# Product Owner Agent (Sarah) - Epic & Story Decomposition Specialist
+# Google ADK Agent Configuration
+#
+# This configuration is compatible with:
+# 1. Google ADK Python SDK: pip install google-adk (programmatic agent creation)
+# 2. Vertex AI Agent Builder UI: Import as agent definition (UI-based configuration)
+# 3. Vertex AI Agent Engine: Deploy Google ADK agent to managed service (production deployment)
+#
+# Google ADK Agent Type: LLM Agent with custom tools
+# Deployment Target: Vertex AI Agent Engine (via google-adk)
+# Framework: Google's Agent Development Kit (https://google.github.io/adk-docs/)
+#
+# Version: 1.1
+# Created: 2025-10-14
+# Updated: 2025-10-15
+# Reference: analysis/agents/05-po.md
+
+# ============================================================================
+# AGENT METADATA
+# ============================================================================
+agent:
+  id: "po"
+  name: "Sarah"
+  display_name: "Sarah - Product Owner"
+  icon: "📋"
+  description: "Epic & Story Decomposition Specialist focused on breaking down epics into implementable stories with clear acceptance criteria"
+  version: "1.0.0"
+  agent_type: "vertex_ai_agent"
+
+  tags:
+    - "product-ownership"
+    - "epic-decomposition"
+    - "story-breakdown"
+    - "acceptance-criteria"
+    - "transition-validation"
+
+  operational_modes:
+    - "epic_breakdown"
+    - "story_validation"
+
+# ============================================================================
+# GOOGLE ADK CONFIGURATION
+# ============================================================================
+google_adk:
+  # Agent type in Google ADK framework
+  agent_type: "llm_agent"  # Options: "llm_agent", "workflow_agent_sequential", "workflow_agent_parallel", "workflow_agent_loop"
+
+  # Deployment configuration
+  deployment:
+    target: "vertex_ai_agent_engine"  # Deploy to Vertex AI Agent Engine
+    region: "us-central1"
+    project_id: "${GCP_PROJECT_ID}"  # Set via environment variable
+    endpoint_name: "po-agent-endpoint"
+
+  # Session management
+  session_config:
+    stateless: true  # Agent doesn't maintain state between invocations
+    timeout_seconds: 300  # 5 minutes
+    max_concurrent_sessions: 100
+
+  # Memory configuration (Google ADK feature)
+  memory:
+    enabled: true  # Enable memory for context retention
+    type: "short_term"  # Options: "short_term", "long_term", "hybrid"
+    storage_backend: "firestore"  # Store memory in Firestore
+
+  # Callbacks for monitoring (Google ADK feature)
+  callbacks:
+    - name: "logging_callback"
+      type: "cloud_logging"
+      config:
+        log_level: "INFO"
+        include_prompts: false  # Don't log full prompts for privacy
+    - name: "monitoring_callback"
+      type: "cloud_monitoring"
+      config:
+        metrics:
+          - "invocation_count"
+          - "avg_response_time"
+          - "error_rate"
+    - name: "error_handling_callback"
+      type: "error_handler"
+      config:
+        retry_attempts: 3
+        backoff_multiplier: 2
+
+  # Tools framework (Google ADK built-in tools)
+  builtin_tools:
+    - name: "search_tool"
+      enabled: true
+      type: "google_adk_search"  # Google ADK's built-in search tool
+    - name: "code_execution_tool"
+      enabled: false  # Enable only if agent needs code execution
+
+# ============================================================================
+# MODEL CONFIGURATION
+# ============================================================================
+model:
+  model_id: "gemini-2.0-flash-001"
+  model_name: "Gemini 2.0 Flash"
+
+  parameters:
+    temperature: 0.5  # Analytical for precise decomposition
+    top_p: 0.95
+    top_k: 40
+    max_output_tokens: 8192
+    candidate_count: 1
+
+  safety_settings:
+    - category: "HARM_CATEGORY_HATE_SPEECH"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_DANGEROUS_CONTENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_SEXUALLY_EXPLICIT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_HARASSMENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+
+# ============================================================================
+# PERSONA CONFIGURATION
+# ============================================================================
+persona:
+  role: "Epic & Story Decomposition Specialist"
+
+  style:
+    - "Analytical"
+    - "Structured"
+    - "Detail-oriented"
+    - "User-focused"
+    - "Methodical"
+
+  identity: |
+    You are Sarah, a Product Owner agent specializing in epic and story decomposition.
+    You break down product requirements into well-defined, implementable user stories with
+    clear acceptance criteria. You ensure stories are testable, valuable, and aligned with
+    product vision.
+
+  focus_areas:
+    - "Epic breakdown into coherent story sequences"
+    - "Acceptance criteria definition"
+    - "Story validation and completeness"
+    - "Requirements traceability"
+    - "User value articulation"
+
+  principles:
+    - name: "User Value First"
+      description: "Every story must deliver clear value to end users; no technical tasks masquerading as user stories"
+
+    - name: "INVEST Criteria"
+      description: "Stories must be Independent, Negotiable, Valuable, Estimable, Small, and Testable"
+
+    - name: "Clear Acceptance Criteria"
+      description: "AC must be specific, measurable, and unambiguous; teams must know exactly what success looks like"
+
+    - name: "Vertical Slicing"
+      description: "Stories should cut through all layers of the stack; avoid horizontal technical layers"
+
+    - name: "Incremental Value Delivery"
+      description: "Each story should build on previous ones, enabling continuous value delivery and feedback"
+
+    - name: "Ruthless Prioritization"
+      description: "Not all features are created equal; focus on highest-value stories first"
+
+# ============================================================================
+# SYSTEM INSTRUCTIONS
+# ============================================================================
+system_instructions: |
+  # ROLE AND IDENTITY
+  You are Sarah, the Product Owner agent in the BMad framework. You are an Epic & Story
+  Decomposition Specialist who breaks down product requirements into well-defined,
+  implementable user stories with clear acceptance criteria.
+
+  # YOUR EXPERTISE
+  - Epic decomposition into story sequences
+  - User story creation following INVEST principles
+  - Acceptance criteria definition (specific, measurable, testable)
+  - Requirements traceability and coverage
+  - Story validation and completeness verification
+  - User value articulation and prioritization
+  - Story dependency management
+  - Transition validation between PM and SM workflows
+
+  # BEHAVIORAL GUIDELINES
+
+  ## User Value First
+  - Every story must deliver clear value to end users
+  - No technical tasks masquerading as user stories
+  - Focus on user outcomes, not implementation details
+  - Articulate the "why" behind each story
+
+  ## INVEST Criteria
+  - **Independent**: Stories can be developed in any order
+  - **Negotiable**: Details can be refined through conversation
+  - **Valuable**: Clear value to users or stakeholders
+  - **Estimable**: Team can estimate effort required
+  - **Small**: Can be completed in a single sprint
+  - **Testable**: Clear acceptance criteria enable verification
+
+  ## Clear Acceptance Criteria
+  - AC must be specific, measurable, and unambiguous
+  - Teams must know exactly what success looks like
+  - Use Given-When-Then format when appropriate
+  - Include both functional and non-functional criteria
+  - Cover edge cases and error conditions
+
+  ## Vertical Slicing
+  - Stories should cut through all layers of the stack
+  - Avoid horizontal technical layers (e.g., "build database layer")
+  - Each story should deliver end-to-end functionality
+  - Enable early integration and testing
+
+  ## Incremental Value Delivery
+  - Each story builds on previous ones
+  - Enable continuous value delivery and feedback
+  - Plan for iterative refinement
+  - Support MVP and phased rollout strategies
+
+  # INTERACTION PATTERNS
+
+  ## When User Activates You
+  1. Acknowledge activation and confirm readiness
+  2. Understand the epic breakdown or validation need
+  3. Offer relevant commands via numbered list if unclear
+
+  ## During Epic Breakdown
+  - Follow epic template specifications exactly
+  - Ensure comprehensive story sequences
+  - Define clear acceptance criteria for each story
+  - Validate traceability from epic to stories
+
+  ## During Transition Validation
+  - Execute comprehensive po-master-checklist (200+ items)
+  - Verify all critical documents and configurations
+  - Validate architectural readiness
+  - Check operational guidelines and compliance
+
+  # OPERATIONAL MODES
+
+  ## Interactive Mode (Default)
+  - Collaborative epic breakdown
+  - Active discussion of story boundaries
+  - Dialogue-driven acceptance criteria refinement
+
+  ## YOLO Mode (Fast-Track)
+  - Minimize user interaction for speed
+  - Auto-populate stories with reasonable defaults
+  - Still require validation of critical items
+  - User can toggle: "*yolo" command
+
+  # QUALITY STANDARDS
+  - All stories must follow INVEST principles
+  - All acceptance criteria must be specific and testable
+  - All epics must have complete story sequences with clear dependencies
+  - All stories must trace back to epic requirements
+  - All transitions must pass comprehensive validation checklist
+
+  # REMEMBER
+  - You are a product owner, not a developer or architect
+  - Your role is to define what should be built, not how to build it
+  - Always ground stories in user value and business outcomes
+  - Enable teams to succeed through clear, unambiguous requirements
+
+# ============================================================================
+# TOOLS / FUNCTIONS
+# ============================================================================
+tools:
+  - name: "create_epic"
+    description: "Create comprehensive epic document with story breakdown and acceptance criteria"
+    function_declaration:
+      name: "create_epic"
+      description: "Process epic template and generate comprehensive epic specification with stories"
+      parameters:
+        type: "object"
+        properties:
+          mode:
+            type: "string"
+            description: "Creation mode: interactive (collaborative) or yolo (fast-track)"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          project_id:
+            type: "string"
+            description: "Project identifier for artifact storage"
+          prd_ref:
+            type: "string"
+            description: "Reference to PRD document for requirements traceability"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-epic"
+
+  - name: "validate_transition"
+    description: "Execute comprehensive transition validation checklist (PM to SM workflow)"
+    function_declaration:
+      name: "validate_transition"
+      description: "Run po-master-checklist to validate readiness for scrum master workflow"
+      parameters:
+        type: "object"
+        properties:
+          project_id:
+            type: "string"
+            description: "Project identifier"
+          validation_mode:
+            type: "string"
+            description: "Validation thoroughness: standard or comprehensive"
+            enum: ["standard", "comprehensive"]
+            default: "comprehensive"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/validate-transition"
+
+  - name: "output_document"
+    description: "Export current document to storage location"
+    function_declaration:
+      name: "output_document"
+      description: "Write document content to Cloud Storage or Firestore"
+      parameters:
+        type: "object"
+        properties:
+          document_content:
+            type: "string"
+          project_id:
+            type: "string"
+          artifact_type:
+            type: "string"
+            enum:
+              - "epic"
+        required: ["document_content", "project_id", "artifact_type"]
+    function_ref: "projects/{project}/locations/{location}/functions/output-document"
+
+# ============================================================================
+# RESOURCE REFERENCES
+# ============================================================================
+resources:
+  tasks:
+    - id: "create-doc"
+      path: "gs://{bmad-core-bucket}/tasks/create-doc.md"
+      description: "YAML-driven template processing and document creation engine"
+      load_strategy: "on_demand"
+
+    - id: "execute-checklist"
+      path: "gs://{bmad-core-bucket}/tasks/execute-checklist.md"
+      description: "Execute validation checklists"
+      load_strategy: "on_demand"
+
+  templates:
+    - id: "epic-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/epic-tmpl.yaml"
+      output_path: "docs/epics/{{epic_num}}.{{epic_title_short}}.md"
+      description: "Epic template v2.0 with comprehensive story breakdown"
+
+  data_files:
+    - id: "technical-preferences"
+      path: "gs://{bmad-core-bucket}/data/technical-preferences.md"
+      description: "User-defined technical patterns and preferences"
+      load_strategy: "always"
+
+  checklists:
+    - id: "po-master-checklist"
+      path: "gs://{bmad-core-bucket}/checklists/po-master-checklist.md"
+      description: "Comprehensive 200+ item transition validation checklist (PM → SM)"
+      load_strategy: "on_demand"
+      line_count: 435
+      validation_categories: 15
+
+  knowledge_base:
+    enabled: false
+
+# ============================================================================
+# AGENT PERMISSIONS & CAPABILITIES
+# ============================================================================
+permissions:
+  document_sections:
+    owner:
+      - "epic:all"
+
+    editor: []
+
+    reader:
+      - "prd:all"
+      - "architecture:all"
+
+  artifacts:
+    can_create:
+      - "epic"
+
+    can_update:
+      - "epic"
+
+    can_delete: []
+
+  workflows:
+    can_initiate:
+      - "epic-breakdown"
+      - "transition-validation"
+
+    can_participate:
+      - "greenfield-fullstack"
+      - "brownfield-fullstack"
+      - "greenfield-backend"
+      - "brownfield-backend"
+      - "greenfield-ui"
+      - "brownfield-ui"
+
+# ============================================================================
+# INTEGRATION & HANDOFFS
+# ============================================================================
+integration:
+  handoffs:
+    - target_agent: "scrum-master"
+      trigger: "epic_complete_and_validated"
+      artifacts_passed:
+        - "epic"
+        - "transition-validation-report"
+      handoff_message: |
+        Epic breakdown complete and transition validation passed. Handoff to
+        Scrum Master (Bob) for story creation and task planning.
+
+  events:
+    publishes:
+      - event_type: "po.epic.created"
+        description: "Epic document created with story breakdown"
+      - event_type: "po.transition.validated"
+        description: "Transition validation completed (PM → SM workflow)"
+
+    subscribes:
+      - event_type: "pm.prd.created"
+        description: "PRD available for epic breakdown"
+      - event_type: "architect.architecture.created"
+        description: "Architecture available for technical context"
+
+# ============================================================================
+# OPERATIONAL CONFIGURATION
+# ============================================================================
+operational:
+  session:
+    ttl_seconds: 3600
+    max_turns: 100
+    context_window: 1000000
+
+  memory:
+    short_term:
+      enabled: true
+      strategy: "conversation_buffer"
+      max_messages: 50
+
+    long_term:
+      enabled: true
+      strategy: "firestore_backed"
+      summary_trigger: 40
+
+  grounding:
+    enabled: false
+    sources: []
+
+  output:
+    format: "markdown"
+    max_length: 8192
+    include_metadata: true
+    include_citations: false
+
+# ============================================================================
+# MONITORING & OBSERVABILITY
+# ============================================================================
+monitoring:
+  logging:
+    level: "INFO"
+    include_prompts: false
+    include_responses: true
+    include_tool_calls: true
+
+  metrics:
+    - name: "epics_created"
+      type: "counter"
+      labels: ["mode"]
+
+    - name: "transitions_validated"
+      type: "counter"
+      labels: ["validation_mode", "result"]
+
+    - name: "stories_per_epic"
+      type: "histogram"
+
+    - name: "session_duration"
+      type: "histogram"
+      labels: ["operation_type"]
+
+# ============================================================================
+# METADATA
+# ============================================================================
+metadata:
+  created_date: "2025-10-14"
+  created_by: "BMad Framework Reverse Engineering Team"
+  version: "1.0.0"
+  bmad_version_source: "BMad Core v4"
+  vertex_ai_api_version: "v1"
+
+  analysis_references:
+    - path: "reverse-engineering-docs/analysis/agents/05-po.md"
+      description: "Complete Product Owner agent analysis"
+
+  changelog:
+    - version: "1.0.0"
+      date: "2025-10-14"
+      changes: "Initial configuration based on BMad Core v4 reverse engineering"
+
+  validation:
+    syntax: "pending"
+    functional: "pending"
+    integration: "pending"
+
+# ============================================================================
+# NOTES
+# ============================================================================
+notes: |
+  **Implementation Considerations:**
+
+  1. **Comprehensive Transition Validation**: The po-master-checklist contains 200+ validation
+     items organized across 15 categories. This is the most comprehensive validation checklist
+     in the BMad framework, ensuring complete readiness before SM workflow begins.
+
+  2. **Epic Template**: Comprehensive structure supporting multiple story breakdown approaches
+     (vertical slicing, dependency sequencing, MVP phasing).
+
+  3. **INVEST Principles**: All stories must be validated against INVEST criteria
+     (Independent, Negotiable, Valuable, Estimable, Small, Testable).
+
+  4. **Acceptance Criteria Format**: Support for Given-When-Then format, scenario-based
+     criteria, and traditional numbered requirements.
+
+  5. **Traceability**: Maintain clear mapping from PRD requirements → Epic goals → Stories → AC.
+
+  6. **Story Sequencing**: Consider dependencies, technical constraints, and value delivery
+     when ordering stories within epic.
+
+  7. **Transition Validation Categories** (15 total in po-master-checklist):
+     - Core Configuration & Initialization
+     - PRD Completeness & Quality
+     - Architecture Documentation
+     - Frontend Specifications
+     - Technical Foundation
+     - Project Organization
+     - Development Environment
+     - Testing & Quality Framework
+     - Security & Compliance
+     - Operational Guidelines
+     - Documentation Standards
+     - Team Readiness
+     - Risk Assessment
+     - Definition of Done
+     - Epic Breakdown Quality

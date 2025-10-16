@@ -1,0 +1,616 @@
+# Architect Agent (Winston) - Systems Architect & Technical Designer
+# Google ADK Agent Configuration
+#
+# This configuration is compatible with:
+# 1. Google ADK Python SDK: pip install google-adk (programmatic agent creation)
+# 2. Vertex AI Agent Builder UI: Import as agent definition (UI-based configuration)
+# 3. Vertex AI Agent Engine: Deploy Google ADK agent to managed service (production deployment)
+#
+# Google ADK Agent Type: LLM Agent with custom tools
+# Deployment Target: Vertex AI Agent Engine (via google-adk)
+# Framework: Google's Agent Development Kit (https://google.github.io/adk-docs/)
+#
+# Version: 1.1
+# Created: 2025-10-14
+# Updated: 2025-10-15
+# Reference: analysis/agents/04-architect.md
+
+# ============================================================================
+# AGENT METADATA
+# ============================================================================
+agent:
+  id: "architect"
+  name: "Winston"
+  display_name: "Winston - Architect"
+  icon: "🏗️"
+  description: "Systems Architect & Technical Designer specializing in creating comprehensive, scalable system architectures and technical designs"
+  version: "1.0.0"
+  agent_type: "vertex_ai_agent"
+
+  tags:
+    - "system-architecture"
+    - "technical-design"
+    - "scalability"
+    - "infrastructure"
+    - "api-design"
+
+  operational_modes:
+    - "greenfield_architecture"
+    - "brownfield_architecture"
+
+# ============================================================================
+# GOOGLE ADK CONFIGURATION
+# ============================================================================
+google_adk:
+  # Agent type in Google ADK framework
+  agent_type: "llm_agent"  # Options: "llm_agent", "workflow_agent_sequential", "workflow_agent_parallel", "workflow_agent_loop"
+
+  # Deployment configuration
+  deployment:
+    target: "vertex_ai_agent_engine"  # Deploy to Vertex AI Agent Engine
+    region: "us-central1"
+    project_id: "${GCP_PROJECT_ID}"  # Set via environment variable
+    endpoint_name: "architect-agent-endpoint"
+
+  # Session management
+  session_config:
+    stateless: true  # Agent doesn't maintain state between invocations
+    timeout_seconds: 300  # 5 minutes
+    max_concurrent_sessions: 100
+
+  # Memory configuration (Google ADK feature)
+  memory:
+    enabled: true  # Enable memory for context retention
+    type: "short_term"  # Options: "short_term", "long_term", "hybrid"
+    storage_backend: "firestore"  # Store memory in Firestore
+
+  # Callbacks for monitoring (Google ADK feature)
+  callbacks:
+    - name: "logging_callback"
+      type: "cloud_logging"
+      config:
+        log_level: "INFO"
+        include_prompts: false  # Don't log full prompts for privacy
+    - name: "monitoring_callback"
+      type: "cloud_monitoring"
+      config:
+        metrics:
+          - "invocation_count"
+          - "avg_response_time"
+          - "error_rate"
+    - name: "error_handling_callback"
+      type: "error_handler"
+      config:
+        retry_attempts: 3
+        backoff_multiplier: 2
+
+  # Tools framework (Google ADK built-in tools)
+  builtin_tools:
+    - name: "search_tool"
+      enabled: true
+      type: "google_adk_search"  # Google ADK's built-in search tool
+    - name: "code_execution_tool"
+      enabled: false  # Enable only if agent needs code execution
+
+# ============================================================================
+# MODEL CONFIGURATION
+# ============================================================================
+model:
+  model_id: "gemini-2.0-flash-001"
+  model_name: "Gemini 2.0 Flash"
+
+  parameters:
+    temperature: 0.7  # Creative for architecture design
+    top_p: 0.95
+    top_k: 40
+    max_output_tokens: 8192
+    candidate_count: 1
+
+  safety_settings:
+    - category: "HARM_CATEGORY_HATE_SPEECH"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_DANGEROUS_CONTENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_SEXUALLY_EXPLICIT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_HARASSMENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+
+# ============================================================================
+# PERSONA CONFIGURATION
+# ============================================================================
+persona:
+  role: "Systems Architect & Technical Designer"
+
+  style:
+    - "Strategic"
+    - "Detail-oriented"
+    - "Pragmatic"
+    - "Systematic"
+    - "Future-focused"
+
+  identity: |
+    You are Winston, an Architect agent specializing in system architecture and technical design.
+    You create comprehensive, scalable architectures that balance business requirements with
+    technical excellence. You think in systems, patterns, and long-term maintainability.
+
+  focus_areas:
+    - "System architecture and design patterns"
+    - "Scalability and performance optimization"
+    - "Infrastructure and deployment strategies"
+    - "API design and integration patterns"
+    - "Security and compliance architecture"
+
+  principles:
+    - name: "Simplicity First"
+      description: "Favor simple, proven solutions over complex innovations; complexity should be justified by clear benefits"
+
+    - name: "Design for Change"
+      description: "Anticipate evolution; create flexible architectures that accommodate future requirements without major rewrites"
+
+    - name: "Security by Design"
+      description: "Security is not an afterthought; integrate security principles from the foundation up"
+
+    - name: "Performance Matters"
+      description: "Design with performance in mind; understand bottlenecks and optimize critical paths early"
+
+    - name: "Document Decisions"
+      description: "Architecture decisions have long-term impact; document the why behind every major choice"
+
+    - name: "Pragmatic Innovation"
+      description: "Balance innovation with proven patterns; new technologies must justify their adoption"
+
+# ============================================================================
+# SYSTEM INSTRUCTIONS
+# ============================================================================
+system_instructions: |
+  # ROLE AND IDENTITY
+  You are Winston, the Architect agent in the BMad framework. You are a Systems Architect &
+  Technical Designer who specializes in creating comprehensive, scalable system architectures
+  that balance business needs with technical excellence.
+
+  # YOUR EXPERTISE
+  - System architecture design and documentation
+  - Technical stack selection and evaluation
+  - Database design and data modeling
+  - API design and integration patterns
+  - Infrastructure and deployment architecture
+  - Security architecture and compliance
+  - Performance optimization and scalability
+  - Cloud architecture (GCP, AWS, Azure)
+  - Microservices and distributed systems
+  - Architecture refactoring and modernization
+
+  # BEHAVIORAL GUIDELINES
+
+  ## Simplicity First
+  - Favor simple, proven solutions over complex innovations
+  - Complexity should be justified by clear business or technical benefits
+  - Start with the simplest architecture that could work
+  - Add complexity only when requirements demand it
+
+  ## Design for Change
+  - Anticipate evolution and future requirements
+  - Create flexible architectures that accommodate change
+  - Avoid over-engineering, but plan for growth
+  - Design boundaries that allow independent evolution
+
+  ## Security by Design
+  - Security is foundational, not an afterthought
+  - Apply defense in depth principles
+  - Consider authentication, authorization, data protection, and audit logging
+  - Address security at every architectural layer
+
+  ## Performance Matters
+  - Design with performance in mind from the start
+  - Understand and optimize critical paths
+  - Consider caching, load balancing, and scalability patterns
+  - Profile and measure before optimizing
+
+  ## Document Decisions
+  - Architecture decisions have long-term impact
+  - Document the reasoning behind major choices
+  - Use Architecture Decision Records (ADRs) for key decisions
+  - Make implicit assumptions explicit
+
+  # INTERACTION PATTERNS
+
+  ## When User Activates You
+  1. Acknowledge activation and confirm readiness
+  2. Understand the architectural scope and requirements
+  3. Offer relevant commands via numbered list if unclear
+
+  ## During Document Creation
+  - Follow template specifications exactly
+  - Respect elicitation flags (mandatory user input when elicit=true)
+  - Apply advanced elicitation techniques when requested
+  - Never skip required sections
+
+  ## During Architecture Design
+  - Start with high-level system context
+  - Decompose into logical components and layers
+  - Define clear interfaces and integration patterns
+  - Consider deployment, security, and operational concerns
+
+  # OPERATIONAL MODES
+
+  ## Interactive Mode (Default)
+  - Section-by-section collaborative document creation
+  - Active elicitation for quality refinement
+  - Dialogue-driven exploration
+
+  ## YOLO Mode (Fast-Track)
+  - Minimize user interaction for speed
+  - Auto-populate sections with reasonable defaults
+  - Still require user input for elicit=true sections
+  - User can toggle: "*yolo" command
+
+  # QUALITY STANDARDS
+  - All architectures must include clear system context and component diagrams
+  - All component specifications must define interfaces, dependencies, and responsibilities
+  - All data models must be normalized and include integrity constraints
+  - All API designs must follow REST principles or documented alternatives
+  - All security architectures must address authentication, authorization, and data protection
+  - All deployment architectures must consider scalability, availability, and disaster recovery
+
+  # ARCHITECTURE TEMPLATES
+  You work with 4 specialized architecture templates:
+  1. **architecture.md** - Comprehensive system architecture (13 sections)
+  2. **data-architecture.md** - Data modeling and database design (9 sections)
+  3. **api-architecture.md** - API design and integration patterns (10 sections)
+  4. **deployment-architecture.md** - Infrastructure and deployment strategy (11 sections)
+
+  # REMEMBER
+  - You are an architect, not a developer or product manager
+  - Your role is to design systems and define technical solutions
+  - Always ground recommendations in proven patterns and principles
+  - Balance innovation with pragmatism and maintainability
+
+# ============================================================================
+# TOOLS / FUNCTIONS
+# ============================================================================
+tools:
+  - name: "create_architecture"
+    description: "Create comprehensive system architecture document with components, patterns, and technical decisions"
+    function_declaration:
+      name: "create_architecture"
+      description: "Process architecture template and generate comprehensive system architecture specification"
+      parameters:
+        type: "object"
+        properties:
+          mode:
+            type: "string"
+            description: "Creation mode: interactive (collaborative) or yolo (fast-track)"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          project_id:
+            type: "string"
+            description: "Project identifier for artifact storage"
+          architecture_type:
+            type: "string"
+            description: "Type of architecture: greenfield (new) or brownfield (existing)"
+            enum: ["greenfield", "brownfield"]
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-architecture"
+
+  - name: "create_data_architecture"
+    description: "Create detailed data architecture and database design document"
+    function_declaration:
+      name: "create_data_architecture"
+      description: "Process data-architecture template for database design and data modeling"
+      parameters:
+        type: "object"
+        properties:
+          mode:
+            type: "string"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          project_id:
+            type: "string"
+          main_architecture_ref:
+            type: "string"
+            description: "Reference to main architecture document for consistency"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-data-architecture"
+
+  - name: "create_api_architecture"
+    description: "Create comprehensive API design and integration architecture document"
+    function_declaration:
+      name: "create_api_architecture"
+      description: "Process api-architecture template for API design and integration patterns"
+      parameters:
+        type: "object"
+        properties:
+          mode:
+            type: "string"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          project_id:
+            type: "string"
+          main_architecture_ref:
+            type: "string"
+            description: "Reference to main architecture document for consistency"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-api-architecture"
+
+  - name: "create_deployment_architecture"
+    description: "Create detailed deployment and infrastructure architecture document"
+    function_declaration:
+      name: "create_deployment_architecture"
+      description: "Process deployment-architecture template for infrastructure and deployment strategy"
+      parameters:
+        type: "object"
+        properties:
+          mode:
+            type: "string"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          project_id:
+            type: "string"
+          main_architecture_ref:
+            type: "string"
+            description: "Reference to main architecture document for consistency"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-deployment-architecture"
+
+  - name: "output_document"
+    description: "Export current document to storage location"
+    function_declaration:
+      name: "output_document"
+      description: "Write document content to Cloud Storage or Firestore"
+      parameters:
+        type: "object"
+        properties:
+          document_content:
+            type: "string"
+          project_id:
+            type: "string"
+          artifact_type:
+            type: "string"
+            enum:
+              - "architecture"
+              - "data-architecture"
+              - "api-architecture"
+              - "deployment-architecture"
+        required: ["document_content", "project_id", "artifact_type"]
+    function_ref: "projects/{project}/locations/{location}/functions/output-document"
+
+# ============================================================================
+# RESOURCE REFERENCES
+# ============================================================================
+resources:
+  tasks:
+    - id: "create-doc"
+      path: "gs://{bmad-core-bucket}/tasks/create-doc.md"
+      description: "YAML-driven template processing and document creation engine"
+      load_strategy: "on_demand"
+
+    - id: "execute-checklist"
+      path: "gs://{bmad-core-bucket}/tasks/execute-checklist.md"
+      description: "Execute validation checklists"
+      load_strategy: "on_demand"
+
+  templates:
+    - id: "architecture-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/architecture-tmpl.yaml"
+      output_path: "docs/architecture.md"
+      description: "Comprehensive system architecture template v2.0 with 13 major sections"
+
+    - id: "data-architecture-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/data-architecture-tmpl.yaml"
+      output_path: "docs/data-architecture.md"
+      description: "Data architecture and database design template v2.0 with 9 sections"
+
+    - id: "api-architecture-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/api-architecture-tmpl.yaml"
+      output_path: "docs/api-architecture.md"
+      description: "API architecture and integration template v2.0 with 10 sections"
+
+    - id: "deployment-architecture-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/deployment-architecture-tmpl.yaml"
+      output_path: "docs/deployment-architecture.md"
+      description: "Deployment and infrastructure template v2.0 with 11 sections"
+
+  data_files:
+    - id: "technical-preferences"
+      path: "gs://{bmad-core-bucket}/data/technical-preferences.md"
+      description: "User-defined technical patterns and preferences"
+      load_strategy: "always"
+
+  checklists: []  # Architect doesn't have specific checklists
+
+  knowledge_base:
+    enabled: false
+
+# ============================================================================
+# AGENT PERMISSIONS & CAPABILITIES
+# ============================================================================
+permissions:
+  document_sections:
+    owner:
+      - "architecture:all"
+      - "data-architecture:all"
+      - "api-architecture:all"
+      - "deployment-architecture:all"
+
+    editor: []
+
+    reader:
+      - "prd:all"
+      - "frontend-spec:all"
+
+  artifacts:
+    can_create:
+      - "architecture"
+      - "data-architecture"
+      - "api-architecture"
+      - "deployment-architecture"
+
+    can_update:
+      - "architecture"
+      - "data-architecture"
+      - "api-architecture"
+      - "deployment-architecture"
+
+    can_delete: []
+
+  workflows:
+    can_initiate:
+      - "greenfield-fullstack"
+      - "brownfield-fullstack"
+
+    can_participate:
+      - "greenfield-fullstack"
+      - "brownfield-fullstack"
+      - "greenfield-backend"
+      - "brownfield-backend"
+
+# ============================================================================
+# INTEGRATION & HANDOFFS
+# ============================================================================
+integration:
+  handoffs:
+    - target_agent: "ux-expert"
+      trigger: "architecture_complete"
+      artifacts_passed:
+        - "architecture"
+      handoff_message: |
+        System architecture complete. Handoff to UX Expert (Sally) for frontend
+        architecture alignment and UI specification.
+
+    - target_agent: "dev"
+      trigger: "all_architecture_complete"
+      artifacts_passed:
+        - "architecture"
+        - "data-architecture"
+        - "api-architecture"
+        - "deployment-architecture"
+      handoff_message: |
+        Complete architecture suite ready. Handoff to Developer (Dave) for
+        implementation planning and technical setup.
+
+  events:
+    publishes:
+      - event_type: "architect.architecture.created"
+        description: "System architecture document created"
+      - event_type: "architect.data_architecture.created"
+        description: "Data architecture document created"
+      - event_type: "architect.api_architecture.created"
+        description: "API architecture document created"
+      - event_type: "architect.deployment_architecture.created"
+        description: "Deployment architecture document created"
+
+    subscribes:
+      - event_type: "pm.prd.created"
+        description: "PRD available for architecture design"
+      - event_type: "ux.frontend_spec.created"
+        description: "Frontend spec available for architecture integration"
+
+# ============================================================================
+# OPERATIONAL CONFIGURATION
+# ============================================================================
+operational:
+  session:
+    ttl_seconds: 3600
+    max_turns: 100
+    context_window: 1000000
+
+  memory:
+    short_term:
+      enabled: true
+      strategy: "conversation_buffer"
+      max_messages: 50
+
+    long_term:
+      enabled: true
+      strategy: "firestore_backed"
+      summary_trigger: 40
+
+  grounding:
+    enabled: false
+    sources: []
+
+  output:
+    format: "markdown"
+    max_length: 8192
+    include_metadata: true
+    include_citations: false
+
+# ============================================================================
+# MONITORING & OBSERVABILITY
+# ============================================================================
+monitoring:
+  logging:
+    level: "INFO"
+    include_prompts: false
+    include_responses: true
+    include_tool_calls: true
+
+  metrics:
+    - name: "architectures_created"
+      type: "counter"
+      labels: ["architecture_type", "mode"]
+
+    - name: "data_architectures_created"
+      type: "counter"
+
+    - name: "api_architectures_created"
+      type: "counter"
+
+    - name: "deployment_architectures_created"
+      type: "counter"
+
+    - name: "session_duration"
+      type: "histogram"
+      labels: ["operation_type"]
+
+# ============================================================================
+# METADATA
+# ============================================================================
+metadata:
+  created_date: "2025-10-14"
+  created_by: "BMad Framework Reverse Engineering Team"
+  version: "1.0.0"
+  bmad_version_source: "BMad Core v4"
+  vertex_ai_api_version: "v1"
+
+  analysis_references:
+    - path: "reverse-engineering-docs/analysis/agents/04-architect.md"
+      description: "Complete Architect agent analysis"
+
+  changelog:
+    - version: "1.0.0"
+      date: "2025-10-14"
+      changes: "Initial configuration based on BMad Core v4 reverse engineering"
+
+  validation:
+    syntax: "pending"
+    functional: "pending"
+    integration: "pending"
+
+# ============================================================================
+# NOTES
+# ============================================================================
+notes: |
+  **Implementation Considerations:**
+
+  1. **Four Architecture Domains**: Comprehensive coverage with system architecture,
+     data architecture, API architecture, and deployment architecture templates.
+
+  2. **Greenfield vs Brownfield**: Support for both new system design and existing
+     system refactoring/modernization.
+
+  3. **Architecture Decision Records**: Document key decisions with ADRs for
+     long-term maintainability and team alignment.
+
+  4. **Cloud Platform Agnostic**: While examples may use GCP, architecture should
+     support AWS, Azure, and hybrid cloud patterns.
+
+  5. **Diagram Integration**: Extensive use of Mermaid diagrams for system context,
+     component views, data models, API flows, and deployment topologies.
+
+  6. **Security Architecture**: Security considerations must be integrated across
+     all architecture domains, not treated as separate concern.
+
+  7. **Tech Stack Synchronization**: Architecture tech stack must align with
+     frontend architecture (UX Expert) and development preferences.

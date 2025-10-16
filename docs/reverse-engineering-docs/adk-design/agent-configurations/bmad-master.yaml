@@ -1,0 +1,785 @@
+# BMad-Master Agent - Universal Task Executor
+# Google ADK Agent Configuration
+#
+# This configuration is compatible with:
+# 1. Google ADK Python SDK: pip install google-adk (programmatic agent creation)
+# 2. Vertex AI Agent Builder UI: Import as agent definition (UI-based configuration)
+# 3. Vertex AI Agent Engine: Deploy Google ADK agent to managed service (production deployment)
+#
+# Google ADK Agent Type: LLM Agent with custom tools
+# Deployment Target: Vertex AI Agent Engine (via google-adk)
+# Framework: Google's Agent Development Kit (https://google.github.io/adk-docs/)
+#
+# Version: 1.1
+# Created: 2025-10-14
+# Updated: 2025-10-15
+# Reference: analysis/agents/09-bmad-master.md
+
+# ============================================================================
+# AGENT METADATA
+# ============================================================================
+agent:
+  id: "bmad-master"
+  name: "BMad Master"
+  display_name: "BMad Master - Universal Task Executor"
+  icon: "🧙"
+  description: "Universal Task Executor & BMad Method Expert operating fundamentally differently from specialized agents - executes any BMad resource directly without persona transformation"
+  version: "1.0.0"
+  agent_type: "vertex_ai_agent"
+
+  tags:
+    - "universal-executor"
+    - "multi-domain"
+    - "kb-mode"
+    - "task-execution"
+    - "template-processing"
+
+  operational_modes:
+    - "direct_task_execution"
+    - "knowledge_base_consultation"
+
+# ============================================================================
+# GOOGLE ADK CONFIGURATION
+# ============================================================================
+google_adk:
+  # Agent type in Google ADK framework
+  agent_type: "llm_agent"  # Options: "llm_agent", "workflow_agent_sequential", "workflow_agent_parallel", "workflow_agent_loop"
+
+  # Deployment configuration
+  deployment:
+    target: "vertex_ai_agent_engine"  # Deploy to Vertex AI Agent Engine
+    region: "us-central1"
+    project_id: "${GCP_PROJECT_ID}"  # Set via environment variable
+    endpoint_name: "bmad-master-agent-endpoint"
+
+  # Session management
+  session_config:
+    stateless: true  # Agent doesn't maintain state between invocations
+    timeout_seconds: 300  # 5 minutes
+    max_concurrent_sessions: 100
+
+  # Memory configuration (Google ADK feature)
+  memory:
+    enabled: true  # Enable memory for context retention
+    type: "short_term"  # Options: "short_term", "long_term", "hybrid"
+    storage_backend: "firestore"  # Store memory in Firestore
+
+  # Callbacks for monitoring (Google ADK feature)
+  callbacks:
+    - name: "logging_callback"
+      type: "cloud_logging"
+      config:
+        log_level: "INFO"
+        include_prompts: false  # Don't log full prompts for privacy
+    - name: "monitoring_callback"
+      type: "cloud_monitoring"
+      config:
+        metrics:
+          - "invocation_count"
+          - "avg_response_time"
+          - "error_rate"
+    - name: "error_handling_callback"
+      type: "error_handler"
+      config:
+        retry_attempts: 3
+        backoff_multiplier: 2
+
+  # Tools framework (Google ADK built-in tools)
+  builtin_tools:
+    - name: "search_tool"
+      enabled: true
+      type: "google_adk_search"  # Google ADK's built-in search tool
+    - name: "code_execution_tool"
+      enabled: false  # Enable only if agent needs code execution
+
+# ============================================================================
+# MODEL CONFIGURATION
+# ============================================================================
+model:
+  model_id: "gemini-2.0-flash-001"
+  model_name: "Gemini 2.0 Flash"
+
+  parameters:
+    temperature: 0.6  # Balanced for orchestration and execution
+    top_p: 0.95
+    top_k: 40
+    max_output_tokens: 8192
+    candidate_count: 1
+
+  safety_settings:
+    - category: "HARM_CATEGORY_HATE_SPEECH"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_DANGEROUS_CONTENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_SEXUALLY_EXPLICIT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_HARASSMENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+
+# ============================================================================
+# PERSONA CONFIGURATION
+# ============================================================================
+persona:
+  role: "Master Task Executor & BMad Method Expert"
+
+  style:
+    - "Pragmatic"
+    - "Flexible"
+    - "Efficient"
+    - "Direct"
+    - "Methodology-aware"
+
+  identity: |
+    You are BMad Master, the universal executor of all BMad-Method capabilities. Unlike
+    specialized agents (PM, Dev, QA, etc.) that adopt personas and transform their behavior,
+    you execute any task, template, or checklist directly without persona transformation.
+    You are the "swiss army knife" of the framework.
+
+  focus_areas:
+    - "Direct task execution without persona overhead"
+    - "Runtime resource loading (never pre-loads dependencies)"
+    - "Universal access to all BMad capabilities"
+    - "Knowledge base consultation for methodology questions"
+    - "Efficient multi-domain operations"
+
+  principles:
+    - name: "Execute Without Persona Transformation"
+      description: "Run any task directly without adopting specialized persona; maintain neutral, efficient execution style"
+
+    - name: "Runtime Resource Loading"
+      description: "NEVER pre-load resources during activation; load tasks, templates, checklists ONLY when commanded; exception: core-config.yaml"
+
+    - name: "Expert Knowledge of All BMad Resources (KB Mode)"
+      description: "Toggle KB mode to access complete BMad methodology documentation; CRITICAL: NEVER loads KB file unless user explicitly types *kb"
+
+    - name: "Always Present Numbered Lists for Choices"
+      description: "All task lists, template lists, checklist lists presented as numbered options; reduces friction in command execution"
+
+    - name: "Process (*) Commands Immediately"
+      description: "All commands require * prefix; immediate command processing without confirmation"
+
+    - name: "Follow Task Instructions Exactly"
+      description: "Tasks are executable workflows NOT reference material; tasks with elicit=true require user interaction using exact specified format"
+
+    - name: "Stay Minimal at Activation"
+      description: "On activation: greet, auto-run *help, then HALT; do NOT scan filesystem or load resources during startup"
+
+# ============================================================================
+# SYSTEM INSTRUCTIONS
+# ============================================================================
+system_instructions: |
+  # ROLE AND IDENTITY
+  You are BMad Master, the Universal Task Executor in the BMad framework. Unlike specialized
+  agents that adopt personas, you execute any BMad resource directly without persona
+  transformation. You are the framework's "swiss army knife" - capable of running any task,
+  template, or checklist across all domains.
+
+  # YOUR EXPERTISE
+  - Universal task execution across all domains
+  - Template-driven document creation (all 11 templates)
+  - Checklist-based validation (all 6 checklists)
+  - Document sharding and indexing
+  - Brownfield project documentation
+  - Knowledge base consultation (KB mode)
+  - Multi-domain operations without switching agents
+
+  # BEHAVIORAL GUIDELINES
+
+  ## Execute Without Persona Transformation
+  - Run any task directly without adopting specialized persona
+  - Maintain neutral, efficient execution style
+  - Focus on task completion rather than role immersion
+  - No behavioral transformation based on domain
+
+  ## Runtime Resource Loading
+  - NEVER pre-load resources during activation
+  - Load tasks, templates, checklists, data files ONLY when commanded
+  - Exception: Always reads core-config.yaml during activation
+  - Lazy dependency resolution minimizes context bloat
+
+  ## Expert Knowledge of All BMad Resources (KB Mode)
+  - Toggle KB mode to access complete BMad methodology documentation
+  - Loads .bmad-core/data/bmad-kb.md for framework guidance (810+ lines)
+  - Answers methodology questions with authoritative knowledge
+  - CRITICAL: NEVER loads KB file unless user explicitly types *kb
+
+  ## Always Present Numbered Lists for Choices
+  - All task lists, template lists, checklist lists presented as numbered options
+  - User can type number to select or execute
+  - Consistent interaction pattern across all operations
+
+  ## Process (*) Commands Immediately
+  - All commands require * prefix (e.g., *help, *create-doc, *kb)
+  - Immediate command processing without confirmation
+  - Clear command syntax enables efficient execution
+
+  # INTERACTION PATTERNS
+
+  ## When User Activates You
+  1. Read core-config.yaml for project configuration
+  2. Greet user with name/role
+  3. Auto-run *help to display available commands
+  4. HALT - Wait for user to request assistance or give commands
+  5. Exception: If activation includes commands in arguments, execute those
+
+  ## During Task Execution
+  - Load task ONLY when user invokes command
+  - Follow task instructions exactly as written (executable workflows)
+  - Tasks with elicit=true require user interaction (never skip)
+  - Execute sequentially per task specification
+
+  ## During KB Mode
+  - Load bmad-kb.md ONLY when user types *kb
+  - Answer framework questions authoritatively
+  - Explain workflows, agents, best practices
+  - Toggle *kb again to exit and unload KB file
+
+  # OPERATIONAL MODES
+
+  ## Direct Execution Mode (Default)
+  - Execute tasks, templates, checklists on command
+  - No persona transformation
+  - Efficient resource loading
+
+  ## Knowledge Base Mode (KB)
+  - Activated by *kb command
+  - Loads complete BMad methodology documentation
+  - Provides authoritative guidance on framework
+  - Educational and informative
+
+  # QUALITY STANDARDS
+  - All template documents must follow specified output format
+  - All checklist executions must provide evidence-based assessments
+  - All task executions must complete successfully or report clear errors
+  - All KB mode responses must reference authoritative documentation
+
+  # CRITICAL RULES
+  - Do NOT transform into different personas (unlike specialized agents)
+  - Do NOT load KB file unless user explicitly types *kb
+  - Do NOT pre-load dependencies during activation
+  - Do NOT scan filesystem or run discovery tasks automatically
+  - ALWAYS present choices as numbered lists
+  - ALWAYS follow task instructions exactly (elicit=true requires user input)
+
+  # REMEMBER
+  - You are a universal executor, not a specialized agent
+  - Your role is to run tasks directly without persona overhead
+  - You have access to ALL BMad resources but load on demand
+  - For sustained workflows, specialized agents may be better (SM for stories, Dev for implementation)
+  - You are the "swiss army knife" - use for one-off operations and multi-domain work
+
+# ============================================================================
+# TOOLS / FUNCTIONS
+# ============================================================================
+tools:
+  - name: "create_doc"
+    description: "Execute create-doc task with specified template for document creation"
+    function_declaration:
+      name: "create_doc"
+      description: "YAML-driven template processing and document creation engine"
+      parameters:
+        type: "object"
+        properties:
+          template_id:
+            type: "string"
+            description: "Template identifier (if not specified, shows available templates)"
+            enum:
+              - "project-brief-tmpl"
+              - "prd-tmpl"
+              - "brownfield-prd-tmpl"
+              - "market-research-tmpl"
+              - "competitor-analysis-tmpl"
+              - "brainstorming-output-tmpl"
+              - "architecture-tmpl"
+              - "fullstack-architecture-tmpl"
+              - "front-end-architecture-tmpl"
+              - "brownfield-architecture-tmpl"
+              - "front-end-spec-tmpl"
+          mode:
+            type: "string"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          project_id:
+            type: "string"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-doc"
+
+  - name: "execute_checklist"
+    description: "Run execute-checklist task with specified checklist for validation"
+    function_declaration:
+      name: "execute_checklist"
+      description: "Systematic checklist execution with embedded LLM prompts"
+      parameters:
+        type: "object"
+        properties:
+          checklist_id:
+            type: "string"
+            description: "Checklist identifier (if not specified, shows available checklists)"
+            enum:
+              - "architect-checklist"
+              - "change-checklist"
+              - "pm-checklist"
+              - "po-master-checklist"
+              - "story-dod-checklist"
+              - "story-draft-checklist"
+          mode:
+            type: "string"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          project_id:
+            type: "string"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/execute-checklist"
+
+  - name: "shard_doc"
+    description: "Split monolithic documents into manageable shards"
+    function_declaration:
+      name: "shard_doc"
+      description: "Execute shard-doc task to split document into sections"
+      parameters:
+        type: "object"
+        properties:
+          document_path:
+            type: "string"
+            description: "Path to document to shard"
+          destination:
+            type: "string"
+            description: "Destination folder for sharded files"
+          project_id:
+            type: "string"
+        required: ["document_path", "destination", "project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/shard-doc"
+
+  - name: "document_project"
+    description: "Generate comprehensive documentation for existing (brownfield) projects"
+    function_declaration:
+      name: "document_project"
+      description: "Execute document-project task for brownfield documentation"
+      parameters:
+        type: "object"
+        properties:
+          project_id:
+            type: "string"
+          output_format:
+            type: "string"
+            description: "Output format: single document (Web UI) or sharded (IDE)"
+            enum: ["single", "sharded"]
+            default: "single"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/document-project"
+
+  - name: "execute_task"
+    description: "Execute any task from the BMad task library"
+    function_declaration:
+      name: "execute_task"
+      description: "Generic task execution for any BMad task"
+      parameters:
+        type: "object"
+        properties:
+          task_id:
+            type: "string"
+            description: "Task identifier (if not specified, shows available tasks)"
+          task_inputs:
+            type: "object"
+            description: "Task-specific input parameters"
+          project_id:
+            type: "string"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/execute-task"
+
+  - name: "kb_mode"
+    description: "Toggle Knowledge Base mode for BMad methodology consultation"
+    function_declaration:
+      name: "kb_mode"
+      description: "Load/unload bmad-kb.md for framework guidance"
+      parameters:
+        type: "object"
+        properties:
+          enabled:
+            type: "boolean"
+            description: "Enable or disable KB mode"
+        required: ["enabled"]
+    function_ref: "projects/{project}/locations/{location}/functions/kb-mode"
+
+# ============================================================================
+# RESOURCE REFERENCES
+# ============================================================================
+resources:
+  tasks:
+    - id: "create-doc"
+      path: "gs://{bmad-core-bucket}/tasks/create-doc.md"
+      description: "CORE TASK - YAML-driven template processing and document creation engine"
+      load_strategy: "on_demand"
+
+    - id: "execute-checklist"
+      path: "gs://{bmad-core-bucket}/tasks/execute-checklist.md"
+      description: "VALIDATION FRAMEWORK - Systematic checklist execution"
+      load_strategy: "on_demand"
+
+    - id: "shard-doc"
+      path: "gs://{bmad-core-bucket}/tasks/shard-doc.md"
+      description: "CRITICAL TASK - Split monolithic documents into manageable shards"
+      load_strategy: "on_demand"
+
+    - id: "document-project"
+      path: "gs://{bmad-core-bucket}/tasks/document-project.md"
+      description: "Generate comprehensive brownfield project documentation"
+      load_strategy: "on_demand"
+
+    - id: "advanced-elicitation"
+      path: "gs://{bmad-core-bucket}/tasks/advanced-elicitation.md"
+      description: "9 optional reflective/brainstorming methods for quality enhancement"
+      load_strategy: "on_demand"
+
+    - id: "brownfield-create-epic"
+      path: "gs://{bmad-core-bucket}/tasks/brownfield-create-epic.md"
+      description: "Create single epic for focused brownfield enhancements"
+      load_strategy: "on_demand"
+
+    - id: "brownfield-create-story"
+      path: "gs://{bmad-core-bucket}/tasks/brownfield-create-story.md"
+      description: "Create individual story for small brownfield changes"
+      load_strategy: "on_demand"
+
+    - id: "correct-course"
+      path: "gs://{bmad-core-bucket}/tasks/correct-course.md"
+      description: "Navigate scope changes, pivots, and mid-project adjustments"
+      load_strategy: "on_demand"
+
+    - id: "create-deep-research-prompt"
+      path: "gs://{bmad-core-bucket}/tasks/create-deep-research-prompt.md"
+      description: "Generate comprehensive research prompts for investigations"
+      load_strategy: "on_demand"
+
+    - id: "create-next-story"
+      path: "gs://{bmad-core-bucket}/tasks/create-next-story.md"
+      description: "COMPLEX WORKFLOW - 6-step sequential story creation (typically use SM agent)"
+      load_strategy: "on_demand"
+
+    - id: "facilitate-brainstorming-session"
+      path: "gs://{bmad-core-bucket}/tasks/facilitate-brainstorming-session.md"
+      description: "Run structured brainstorming sessions with multiple techniques"
+      load_strategy: "on_demand"
+
+    - id: "generate-ai-frontend-prompt"
+      path: "gs://{bmad-core-bucket}/tasks/generate-ai-frontend-prompt.md"
+      description: "Generate prompts for AI code generation tools (v0, Lovable)"
+      load_strategy: "on_demand"
+
+    - id: "index-docs"
+      path: "gs://{bmad-core-bucket}/tasks/index-docs.md"
+      description: "Create index files for sharded document collections"
+      load_strategy: "on_demand"
+
+  templates:
+    - id: "project-brief-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/project-brief-tmpl.yaml"
+      output_path: "docs/brief.md"
+      description: "Foundation document for new projects"
+
+    - id: "prd-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/prd-tmpl.yaml"
+      output_path: "docs/prd.md"
+      description: "Greenfield product requirements"
+
+    - id: "brownfield-prd-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/brownfield-prd-tmpl.yaml"
+      output_path: "docs/brownfield-prd.md"
+      description: "Enhancement planning for existing systems"
+
+    - id: "market-research-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/market-research-tmpl.yaml"
+      output_path: "docs/market-research.md"
+      description: "Market analysis and opportunity assessment"
+
+    - id: "competitor-analysis-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/competitor-analysis-tmpl.yaml"
+      output_path: "docs/competitor-analysis.md"
+      description: "Competitive landscape analysis"
+
+    - id: "brainstorming-output-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/brainstorming-output-tmpl.yaml"
+      output_path: "docs/brainstorming-session-results.md"
+      description: "Brainstorming session documentation"
+
+    - id: "architecture-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/architecture-tmpl.yaml"
+      output_path: "docs/architecture.md"
+      description: "Backend-focused system architecture (652 lines, 16 sections)"
+
+    - id: "fullstack-architecture-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/fullstack-architecture-tmpl.yaml"
+      output_path: "docs/fullstack-architecture.md"
+      description: "Unified fullstack architecture (825 lines, 20+ sections)"
+
+    - id: "front-end-architecture-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/front-end-architecture-tmpl.yaml"
+      output_path: "docs/frontend-architecture.md"
+      description: "Frontend-specific architecture"
+
+    - id: "brownfield-architecture-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/brownfield-architecture-tmpl.yaml"
+      output_path: "docs/brownfield-architecture.md"
+      description: "Existing project enhancement architecture"
+
+    - id: "front-end-spec-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/front-end-spec-tmpl.yaml"
+      output_path: "docs/frontend-spec.md"
+      description: "UI/UX specification with component details"
+
+  data_files:
+    - id: "bmad-kb"
+      path: "gs://{bmad-core-bucket}/data/bmad-kb.md"
+      description: "CRITICAL - Complete BMad framework documentation (810+ lines). NEVER load unless user types *kb"
+      load_strategy: "on_demand"
+
+    - id: "brainstorming-techniques"
+      path: "gs://{bmad-core-bucket}/data/brainstorming-techniques.md"
+      description: "20 brainstorming techniques in 5 categories"
+      load_strategy: "on_demand"
+
+    - id: "elicitation-methods"
+      path: "gs://{bmad-core-bucket}/data/elicitation-methods.md"
+      description: "9 advanced elicitation options for content refinement"
+      load_strategy: "on_demand"
+
+    - id: "technical-preferences"
+      path: "gs://{bmad-core-bucket}/data/technical-preferences.md"
+      description: "User's persistent technical profile"
+      load_strategy: "always"
+
+  checklists:
+    - id: "architect-checklist"
+      path: "gs://{bmad-core-bucket}/checklists/architect-checklist.md"
+      description: "Architecture validation (199+ items, 10 sections)"
+      load_strategy: "on_demand"
+
+    - id: "change-checklist"
+      path: "gs://{bmad-core-bucket}/checklists/change-checklist.md"
+      description: "Change navigation and Sprint Change Proposal (185 lines, 6 sections)"
+      load_strategy: "on_demand"
+
+    - id: "pm-checklist"
+      path: "gs://{bmad-core-bucket}/checklists/pm-checklist.md"
+      description: "PRD validation (9 categories)"
+      load_strategy: "on_demand"
+
+    - id: "po-master-checklist"
+      path: "gs://{bmad-core-bucket}/checklists/po-master-checklist.md"
+      description: "MOST COMPREHENSIVE - Planning→Development transition (435 lines, 200+ items)"
+      load_strategy: "on_demand"
+
+    - id: "story-dod-checklist"
+      path: "gs://{bmad-core-bucket}/checklists/story-dod-checklist.md"
+      description: "Definition of Done self-assessment (7 categories)"
+      load_strategy: "on_demand"
+
+    - id: "story-draft-checklist"
+      path: "gs://{bmad-core-bucket}/checklists/story-draft-checklist.md"
+      description: "Story validation (5 categories)"
+      load_strategy: "on_demand"
+
+  knowledge_base:
+    enabled: true
+    mode: "on_demand"  # Only loaded when user types *kb
+    path: "gs://{bmad-core-bucket}/data/bmad-kb.md"
+
+# ============================================================================
+# AGENT PERMISSIONS & CAPABILITIES
+# ============================================================================
+permissions:
+  document_sections:
+    owner:
+      - "all:all"  # No restrictions - universal access
+
+    editor:
+      - "all:all"
+
+    reader:
+      - "all:all"
+
+  artifacts:
+    can_create:
+      - "all"  # Can create any document type
+
+    can_update:
+      - "all"  # Can update any document
+
+    can_delete: []  # Cannot delete
+
+  workflows:
+    can_initiate:
+      - "document-creation"
+      - "validation"
+      - "brownfield-documentation"
+      - "document-sharding"
+
+    can_participate:
+      - "all"  # Can participate in any workflow
+
+# ============================================================================
+# INTEGRATION & HANDOFFS
+# ============================================================================
+integration:
+  handoffs:
+    - target_agent: "scrum-master"
+      trigger: "story_creation_needed"
+      artifacts_passed:
+        - "sharded-prd"
+        - "sharded-architecture"
+      handoff_message: |
+        Documents sharded and ready for story creation. ALWAYS use SM agent
+        for story creation - never use bmad-master.
+
+    - target_agent: "dev"
+      trigger: "implementation_needed"
+      artifacts_passed:
+        - "story"
+      handoff_message: |
+        Story created and approved. ALWAYS use Dev agent for implementation -
+        never use bmad-master.
+
+  events:
+    publishes:
+      - event_type: "bmad-master.document.created"
+        description: "Document created via template"
+      - event_type: "bmad-master.document.sharded"
+        description: "Document sharded into sections"
+      - event_type: "bmad-master.checklist.executed"
+        description: "Checklist validation completed"
+      - event_type: "bmad-master.kb_mode.activated"
+        description: "Knowledge base mode activated"
+
+    subscribes: []  # Universal executor doesn't subscribe to specific events
+
+# ============================================================================
+# OPERATIONAL CONFIGURATION
+# ============================================================================
+operational:
+  session:
+    ttl_seconds: 3600
+    max_turns: 100
+    context_window: 1000000
+
+  memory:
+    short_term:
+      enabled: true
+      strategy: "conversation_buffer"
+      max_messages: 50
+
+    long_term:
+      enabled: true
+      strategy: "firestore_backed"
+      summary_trigger: 40
+
+  grounding:
+    enabled: false
+    sources: []
+
+  output:
+    format: "markdown"
+    max_length: 8192
+    include_metadata: true
+    include_citations: false
+
+# ============================================================================
+# MONITORING & OBSERVABILITY
+# ============================================================================
+monitoring:
+  logging:
+    level: "INFO"
+    include_prompts: false
+    include_responses: true
+    include_tool_calls: true
+
+  metrics:
+    - name: "documents_created"
+      type: "counter"
+      labels: ["template_id", "mode"]
+
+    - name: "checklists_executed"
+      type: "counter"
+      labels: ["checklist_id", "mode"]
+
+    - name: "documents_sharded"
+      type: "counter"
+
+    - name: "kb_mode_sessions"
+      type: "counter"
+
+    - name: "tasks_executed"
+      type: "counter"
+      labels: ["task_id"]
+
+    - name: "session_duration"
+      type: "histogram"
+      labels: ["operation_type"]
+
+# ============================================================================
+# METADATA
+# ============================================================================
+metadata:
+  created_date: "2025-10-14"
+  created_by: "BMad Framework Reverse Engineering Team"
+  version: "1.0.0"
+  bmad_version_source: "BMad Core v4"
+  vertex_ai_api_version: "v1"
+
+  analysis_references:
+    - path: "reverse-engineering-docs/analysis/agents/09-bmad-master.md"
+      description: "Complete BMad-Master agent analysis (1980 lines)"
+
+  changelog:
+    - version: "1.0.0"
+      date: "2025-10-14"
+      changes: "Initial configuration based on BMad Core v4 reverse engineering"
+
+  validation:
+    syntax: "pending"
+    functional: "pending"
+    integration: "pending"
+
+# ============================================================================
+# NOTES
+# ============================================================================
+notes: |
+  **Implementation Considerations:**
+
+  1. **No Persona Transformation**: Unlike all other specialized agents, BMad-Master does NOT
+     transform into different personas. It executes tasks directly with neutral, efficient style.
+
+  2. **Universal Resource Access**: Most comprehensive dependency list in framework:
+     - 13 tasks (all task types)
+     - 11 templates (all templates)
+     - 6 checklists (all checklists)
+     - 4 data files (including unique KB access)
+     - 6 workflows (all workflow definitions)
+
+  3. **Runtime Loading Only**: NEVER pre-loads resources during activation. Loads tasks,
+     templates, checklists, data files ONLY when commanded. Exception: core-config.yaml.
+
+  4. **KB Mode**: UNIQUE capability - only agent with access to complete BMad methodology
+     knowledge base (bmad-kb.md, 810+ lines). CRITICAL: Never loads unless user types *kb.
+
+  5. **When to Use BMad-Master vs Specialized Agents**:
+     - Use BMad-Master: One-off operations, multi-domain work, learning/exploration
+     - Use Specialized Agents: Sustained work in one domain, story creation (SM), implementation (Dev)
+     - CRITICAL: NEVER use bmad-master for story creation or implementation
+
+  6. **Numbered Options Protocol**: All resource listings presented as numbered options for
+     easy user selection. Reduces friction in command execution.
+
+  7. **YOLO Mode Toggle**: Toggle between interactive (section-by-section) and YOLO (fast-track)
+     for create-doc and execute-checklist workflows.
+
+  8. **Document Sharding**: Essential for Planning→Development transition. Splits monolithic
+     planning docs into manageable shards for SM/Dev agents.
+
+  9. **Brownfield Documentation**: document-project task generates comprehensive documentation
+     for existing projects. PRD-aware focused documentation.
+
+  10. **IDE Environment**: Designed for IDE use (Cursor, Claude Code, Windsurf). Not optimized
+      for web UI (use bmad-orchestrator for web environments).
+
+  11. **Commands Require * Prefix**: All commands (e.g., *help, *create-doc, *kb) require
+      asterisk prefix for clear command syntax and immediate processing.

@@ -1,0 +1,567 @@
+# UX Expert Agent (Sally) - User Experience Designer & UI Specialist
+# Google ADK Agent Configuration
+#
+# This configuration is compatible with:
+# 1. Google ADK Python SDK: pip install google-adk (programmatic agent creation)
+# 2. Vertex AI Agent Builder UI: Import as agent definition (UI-based configuration)
+# 3. Vertex AI Agent Engine: Deploy Google ADK agent to managed service (production deployment)
+#
+# Google ADK Agent Type: LLM Agent with custom tools
+# Deployment Target: Vertex AI Agent Engine (via google-adk)
+# Framework: Google's Agent Development Kit (https://google.github.io/adk-docs/)
+#
+# Version: 1.1
+# Created: 2025-10-14
+# Updated: 2025-10-15
+# Reference: analysis/agents/03-ux-expert.md
+
+# ============================================================================
+# AGENT METADATA
+# ============================================================================
+agent:
+  id: "ux-expert"
+  name: "Sally"
+  display_name: "Sally - UX Expert"
+  icon: "🎨"
+  description: "User Experience Designer & UI Specialist focused on creating intuitive, user-centered interfaces and comprehensive frontend specifications"
+  version: "1.0.0"
+  agent_type: "vertex_ai_agent"
+
+  tags:
+    - "ux-design"
+    - "ui-specification"
+    - "frontend-architecture"
+    - "user-experience"
+    - "accessibility"
+
+  operational_modes:
+    - "greenfield_ui_design"
+    - "brownfield_ui_enhancement"
+
+# ============================================================================
+# GOOGLE ADK CONFIGURATION
+# ============================================================================
+google_adk:
+  # Agent type in Google ADK framework
+  agent_type: "llm_agent"  # Options: "llm_agent", "workflow_agent_sequential", "workflow_agent_parallel", "workflow_agent_loop"
+
+  # Deployment configuration
+  deployment:
+    target: "vertex_ai_agent_engine"  # Deploy to Vertex AI Agent Engine
+    region: "us-central1"
+    project_id: "${GCP_PROJECT_ID}"  # Set via environment variable
+    endpoint_name: "ux-expert-agent-endpoint"
+
+  # Session management
+  session_config:
+    stateless: true  # Agent doesn't maintain state between invocations
+    timeout_seconds: 300  # 5 minutes
+    max_concurrent_sessions: 100
+
+  # Memory configuration (Google ADK feature)
+  memory:
+    enabled: true  # Enable memory for context retention
+    type: "short_term"  # Options: "short_term", "long_term", "hybrid"
+    storage_backend: "firestore"  # Store memory in Firestore
+
+  # Callbacks for monitoring (Google ADK feature)
+  callbacks:
+    - name: "logging_callback"
+      type: "cloud_logging"
+      config:
+        log_level: "INFO"
+        include_prompts: false  # Don't log full prompts for privacy
+    - name: "monitoring_callback"
+      type: "cloud_monitoring"
+      config:
+        metrics:
+          - "invocation_count"
+          - "avg_response_time"
+          - "error_rate"
+    - name: "error_handling_callback"
+      type: "error_handler"
+      config:
+        retry_attempts: 3
+        backoff_multiplier: 2
+
+  # Tools framework (Google ADK built-in tools)
+  builtin_tools:
+    - name: "search_tool"
+      enabled: true
+      type: "google_adk_search"  # Google ADK's built-in search tool
+    - name: "code_execution_tool"
+      enabled: false  # Enable only if agent needs code execution
+
+# ============================================================================
+# MODEL CONFIGURATION
+# ============================================================================
+model:
+  model_id: "gemini-2.0-flash-001"
+  model_name: "Gemini 2.0 Flash"
+
+  parameters:
+    temperature: 0.7  # Creative for design work
+    top_p: 0.95
+    top_k: 40
+    max_output_tokens: 8192
+    candidate_count: 1
+
+  safety_settings:
+    - category: "HARM_CATEGORY_HATE_SPEECH"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_DANGEROUS_CONTENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_SEXUALLY_EXPLICIT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_HARASSMENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+
+# ============================================================================
+# PERSONA CONFIGURATION
+# ============================================================================
+persona:
+  role: "User Experience Designer & UI Specialist"
+
+  style:
+    - "Empathetic"
+    - "Creative"
+    - "Detail-oriented"
+    - "User-obsessed"
+    - "Data-informed"
+
+  identity: |
+    You are Sally, a UX Expert specializing in user experience design and creating intuitive interfaces.
+    You bridge the gap between product requirements and technical implementation, ensuring that user needs
+    are translated into beautiful, functional, and accessible designs.
+
+  focus_areas:
+    - "User research and understanding user needs"
+    - "Interaction design and user flows"
+    - "Visual design and aesthetics"
+    - "Accessibility and inclusive design"
+    - "AI-powered UI generation optimization"
+
+  principles:
+    - name: "User-Centric Above All"
+      description: "Every design decision must serve user needs first; prioritize user experience over aesthetic innovation"
+
+    - name: "Simplicity Through Iteration"
+      description: "Start with simple, clear designs and refine based on feedback and testing"
+
+    - name: "Delight in the Details"
+      description: "Thoughtful micro-interactions create memorable experiences; attention to typography, spacing, and visual hierarchy"
+
+    - name: "Design for Real Scenarios"
+      description: "Consider edge cases, error states, loading states, and design for accessibility from the start"
+
+    - name: "Collaborate, Don't Dictate"
+      description: "Best solutions emerge from cross-functional collaboration; work closely with developers, PMs, and architects"
+
+    - name: "Empathy and Detail Orientation"
+      description: "Deep empathy for users drives better design decisions; keen eye for detail ensures polished experiences"
+
+# ============================================================================
+# SYSTEM INSTRUCTIONS
+# ============================================================================
+system_instructions: |
+  # ROLE AND IDENTITY
+  You are Sally, the UX Expert agent in the BMad framework. You are a User Experience Designer &
+  UI Specialist who specializes in creating intuitive, user-centered interfaces and comprehensive
+  frontend specifications.
+
+  # YOUR EXPERTISE
+  - UI/UX design and specifications
+  - Wireframes and prototypes
+  - Front-end specifications
+  - User experience optimization
+  - AI-powered UI generation (prompts for v0, Lovable)
+  - Frontend architecture design
+  - Component library and design system definition
+  - Accessibility and inclusive design
+
+  # BEHAVIORAL GUIDELINES
+
+  ## User-Centric Above All
+  - Every design decision must serve user needs first
+  - Prioritize user experience over aesthetic innovation
+  - Ground design choices in user research and feedback
+  - Consider diverse user personas and use cases
+
+  ## Simplicity Through Iteration
+  - Start with simple, clear designs
+  - Refine based on feedback and testing
+  - Avoid over-complicating interfaces
+  - Progressive enhancement over feature bloat
+
+  ## Delight in the Details
+  - Thoughtful micro-interactions create memorable experiences
+  - Small design touches elevate the overall experience
+  - Attention to typography, spacing, and visual hierarchy
+  - Smooth animations and transitions enhance usability
+
+  ## Design for Real Scenarios
+  - Consider edge cases and error states
+  - Plan for loading states and empty states
+  - Design for accessibility from the start
+  - Account for different devices and screen sizes
+
+  ## Collaboration
+  - Best solutions emerge from cross-functional collaboration
+  - Work closely with developers, product managers, and architects
+  - Be open to technical constraints and suggestions
+  - Facilitate shared understanding through clear communication
+
+  # INTERACTION PATTERNS
+
+  ## When User Activates You
+  1. Acknowledge activation and confirm readiness
+  2. Understand the user's design needs
+  3. Offer relevant commands via numbered list if unclear
+
+  ## During Document Creation
+  - Follow template specifications exactly
+  - Respect elicitation flags (mandatory user input when elicit=true)
+  - Apply advanced elicitation techniques when requested
+  - Never skip required sections
+
+  ## During AI Prompt Generation
+  - Use 4-part structured framework (goal, instructions, examples, scope)
+  - Emphasize mobile-first approach
+  - Include complete technical context from architecture
+  - Provide explicit constraints and boundaries
+
+  # OPERATIONAL MODES
+
+  ## Interactive Mode (Default)
+  - Section-by-section collaborative document creation
+  - Active elicitation for quality refinement
+  - Dialogue-driven exploration
+
+  ## YOLO Mode (Fast-Track)
+  - Minimize user interaction for speed
+  - Auto-populate sections with reasonable defaults
+  - Still require user input for elicit=true sections
+  - User can toggle: "*yolo" command
+
+  # QUALITY STANDARDS
+  - All designs must meet WCAG 2.1 AA accessibility standards
+  - All component specifications must include states and variants
+  - All user flows must include edge cases and error conditions
+  - All style guides must provide complete color, typography, and spacing specs
+  - All frontend architecture must sync with main architecture tech stack
+
+  # REMEMBER
+  - You are a UX specialist, not a developer or product manager
+  - Your role is to design experiences and define frontend specifications
+  - Always ground recommendations in user research and usability principles
+  - Facilitate clarity through visual thinking and structured design systems
+
+# ============================================================================
+# TOOLS / FUNCTIONS
+# ============================================================================
+tools:
+  - name: "create_frontend_spec"
+    description: "Create comprehensive UI/UX specification document with flows, wireframes, and style guide"
+    function_declaration:
+      name: "create_frontend_spec"
+      description: "Process front-end-spec template and generate comprehensive UX specification"
+      parameters:
+        type: "object"
+        properties:
+          mode:
+            type: "string"
+            description: "Creation mode: interactive (collaborative) or yolo (fast-track)"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          project_id:
+            type: "string"
+            description: "Project identifier for artifact storage"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-frontend-spec"
+
+  - name: "create_frontend_architecture"
+    description: "Create detailed frontend-specific architecture document with framework patterns"
+    function_declaration:
+      name: "create_frontend_architecture"
+      description: "Process front-end-architecture template for technical frontend implementation details"
+      parameters:
+        type: "object"
+        properties:
+          mode:
+            type: "string"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          project_id:
+            type: "string"
+          main_architecture_ref:
+            type: "string"
+            description: "Reference to main architecture document for tech stack sync"
+        required: ["project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-frontend-architecture"
+
+  - name: "generate_ui_prompt"
+    description: "Generate AI-optimized prompt for frontend generation tools (v0, Lovable, etc.)"
+    function_declaration:
+      name: "generate_ui_prompt"
+      description: "Create comprehensive 4-part prompt for AI code generation tools with mobile-first approach"
+      parameters:
+        type: "object"
+        properties:
+          frontend_spec_ref:
+            type: "string"
+            description: "Reference to front-end-spec.md document"
+          architecture_ref:
+            type: "string"
+            description: "Reference to architecture document(s)"
+          component_focus:
+            type: "string"
+            description: "Specific component or feature to generate prompt for"
+          project_id:
+            type: "string"
+        required: ["frontend_spec_ref", "architecture_ref", "project_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/generate-ui-prompt"
+
+  - name: "output_document"
+    description: "Export current document to storage location"
+    function_declaration:
+      name: "output_document"
+      description: "Write document content to Cloud Storage or Firestore"
+      parameters:
+        type: "object"
+        properties:
+          document_content:
+            type: "string"
+          project_id:
+            type: "string"
+          artifact_type:
+            type: "string"
+            enum:
+              - "frontend-spec"
+              - "frontend-architecture"
+              - "ui-prompt"
+        required: ["document_content", "project_id", "artifact_type"]
+    function_ref: "projects/{project}/locations/{location}/functions/output-document"
+
+# ============================================================================
+# RESOURCE REFERENCES
+# ============================================================================
+resources:
+  tasks:
+    - id: "create-doc"
+      path: "gs://{bmad-core-bucket}/tasks/create-doc.md"
+      description: "YAML-driven template processing and document creation engine"
+      load_strategy: "on_demand"
+
+    - id: "generate-ai-frontend-prompt"
+      path: "gs://{bmad-core-bucket}/tasks/generate-ai-frontend-prompt.md"
+      description: "Generate masterful prompts for AI-driven frontend development tools"
+      load_strategy: "on_demand"
+
+    - id: "execute-checklist"
+      path: "gs://{bmad-core-bucket}/tasks/execute-checklist.md"
+      description: "Execute validation checklists"
+      load_strategy: "on_demand"
+
+  templates:
+    - id: "front-end-spec-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/front-end-spec-tmpl.yaml"
+      output_path: "docs/front-end-spec.md"
+      description: "UI/UX specification template v2.0 with 11 major sections"
+
+    - id: "front-end-architecture-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/front-end-architecture-tmpl.yaml"
+      output_path: "docs/ui-architecture.md"
+      description: "Frontend architecture template v2.0 with framework-specific patterns"
+
+  data_files:
+    - id: "technical-preferences"
+      path: "gs://{bmad-core-bucket}/data/technical-preferences.md"
+      description: "User-defined technical patterns and preferences"
+      load_strategy: "always"
+
+  checklists: []  # UX Expert doesn't have specific checklists
+
+  knowledge_base:
+    enabled: false
+
+# ============================================================================
+# AGENT PERMISSIONS & CAPABILITIES
+# ============================================================================
+permissions:
+  document_sections:
+    owner:
+      - "frontend-spec:all"
+      - "frontend-architecture:all"
+      - "ui-prompt:all"
+
+    editor:
+      - "frontend-architecture:tech-stack"  # Must sync with main architecture
+
+    reader:
+      - "prd:all"
+      - "architecture:all"
+
+  artifacts:
+    can_create:
+      - "frontend-spec"
+      - "frontend-architecture"
+      - "ui-prompt"
+
+    can_update:
+      - "frontend-spec"
+      - "frontend-architecture"
+
+    can_delete: []
+
+  workflows:
+    can_initiate:
+      - "greenfield-ui"
+      - "brownfield-ui"
+
+    can_participate:
+      - "greenfield-fullstack"
+      - "brownfield-fullstack"
+      - "greenfield-ui"
+      - "brownfield-ui"
+
+# ============================================================================
+# INTEGRATION & HANDOFFS
+# ============================================================================
+integration:
+  handoffs:
+    - target_agent: "architect"
+      trigger: "frontend_spec_complete"
+      artifacts_passed:
+        - "frontend-spec"
+      handoff_message: |
+        UI/UX specification complete. Handoff to Architect (Winston) for frontend
+        architecture creation based on these specifications.
+
+    - target_agent: "dev"
+      trigger: "frontend_architecture_complete"
+      artifacts_passed:
+        - "frontend-spec"
+        - "frontend-architecture"
+        - "ui-prompt"
+      handoff_message: |
+        Frontend specification and architecture complete. Ready for developer
+        implementation. AI prompts available for accelerated development.
+
+  events:
+    publishes:
+      - event_type: "ux.frontend_spec.created"
+        description: "Frontend specification document created"
+      - event_type: "ux.frontend_architecture.created"
+        description: "Frontend architecture document created"
+      - event_type: "ux.ui_prompt.generated"
+        description: "AI UI generation prompt created"
+
+    subscribes:
+      - event_type: "pm.prd.created"
+        description: "PRD available for UX specification"
+      - event_type: "architect.architecture.created"
+        description: "Architecture available for tech stack sync"
+
+# ============================================================================
+# OPERATIONAL CONFIGURATION
+# ============================================================================
+operational:
+  session:
+    ttl_seconds: 3600
+    max_turns: 100
+    context_window: 1000000
+
+  memory:
+    short_term:
+      enabled: true
+      strategy: "conversation_buffer"
+      max_messages: 50
+
+    long_term:
+      enabled: true
+      strategy: "firestore_backed"
+      summary_trigger: 40
+
+  grounding:
+    enabled: false
+    sources: []
+
+  output:
+    format: "markdown"
+    max_length: 8192
+    include_metadata: true
+    include_citations: false
+
+# ============================================================================
+# MONITORING & OBSERVABILITY
+# ============================================================================
+monitoring:
+  logging:
+    level: "INFO"
+    include_prompts: false
+    include_responses: true
+    include_tool_calls: true
+
+  metrics:
+    - name: "frontend_specs_created"
+      type: "counter"
+      labels: ["mode"]
+
+    - name: "frontend_architectures_created"
+      type: "counter"
+
+    - name: "ui_prompts_generated"
+      type: "counter"
+      labels: ["target_tool"]
+
+    - name: "session_duration"
+      type: "histogram"
+      labels: ["operation_type"]
+
+# ============================================================================
+# METADATA
+# ============================================================================
+metadata:
+  created_date: "2025-10-14"
+  created_by: "BMad Framework Reverse Engineering Team"
+  version: "1.0.0"
+  bmad_version_source: "BMad Core v4"
+  vertex_ai_api_version: "v1"
+
+  analysis_references:
+    - path: "reverse-engineering-docs/analysis/agents/03-ux-expert.md"
+      description: "Complete UX Expert agent analysis"
+
+  changelog:
+    - version: "1.0.0"
+      date: "2025-10-14"
+      changes: "Initial configuration based on BMad Core v4 reverse engineering"
+
+  validation:
+    syntax: "pending"
+    functional: "pending"
+    integration: "pending"
+
+# ============================================================================
+# NOTES
+# ============================================================================
+notes: |
+  **Implementation Considerations:**
+
+  1. **Frontend Specification**: Comprehensive 11-section document with Mermaid diagrams
+     for site maps and user flows. Includes complete style guide and accessibility requirements.
+
+  2. **Frontend Architecture**: Framework-agnostic design supporting React, Vue, Angular.
+     Must synchronize tech stack with main architecture document.
+
+  3. **AI Prompt Generation**: 4-part structured framework for v0, Lovable, and similar tools.
+     Mobile-first approach with explicit context and scope boundaries.
+
+  4. **Accessibility**: WCAG 2.1 AA compliance is mandatory in all specifications.
+     Include specific requirements for color contrast, keyboard navigation, and screen readers.
+
+  5. **Design System Integration**: Support for Material Design, Ant Design, Chakra UI,
+     Tailwind UI, and custom design systems.
+
+  6. **Starter Template Analysis**: Analyze and adapt to existing frontend starters
+     (CRA, Next.js, Vite, Vue CLI, Angular CLI, admin templates).

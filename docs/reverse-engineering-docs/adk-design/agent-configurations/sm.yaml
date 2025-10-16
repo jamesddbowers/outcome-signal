@@ -1,0 +1,576 @@
+# Scrum Master Agent (Bob) - Story Creation Specialist
+# Google ADK Agent Configuration
+#
+# This configuration is compatible with:
+# 1. Google ADK Python SDK: pip install google-adk (programmatic agent creation)
+# 2. Vertex AI Agent Builder UI: Import as agent definition (UI-based configuration)
+# 3. Vertex AI Agent Engine: Deploy Google ADK agent to managed service (production deployment)
+#
+# Google ADK Agent Type: LLM Agent with custom tools
+# Deployment Target: Vertex AI Agent Engine (via google-adk)
+# Framework: Google's Agent Development Kit (https://google.github.io/adk-docs/)
+#
+# Version: 1.1
+# Created: 2025-10-14
+# Updated: 2025-10-15
+# Reference: analysis/agents/06-sm.md
+
+# ============================================================================
+# AGENT METADATA
+# ============================================================================
+agent:
+  id: "sm"
+  name: "Bob"
+  display_name: "Bob - Scrum Master"
+  icon: "🏃"
+  description: "Story Creation Specialist focused on transforming epic stories into detailed, implementable user stories with comprehensive task breakdowns"
+  version: "1.0.0"
+  agent_type: "vertex_ai_agent"
+
+  tags:
+    - "scrum-master"
+    - "story-creation"
+    - "task-planning"
+    - "sprint-management"
+    - "implementation-planning"
+
+  operational_modes:
+    - "story_creation"
+    - "story_refinement"
+
+# ============================================================================
+# GOOGLE ADK CONFIGURATION
+# ============================================================================
+google_adk:
+  # Agent type in Google ADK framework
+  agent_type: "llm_agent"  # Options: "llm_agent", "workflow_agent_sequential", "workflow_agent_parallel", "workflow_agent_loop"
+
+  # Deployment configuration
+  deployment:
+    target: "vertex_ai_agent_engine"  # Deploy to Vertex AI Agent Engine
+    region: "us-central1"
+    project_id: "${GCP_PROJECT_ID}"  # Set via environment variable
+    endpoint_name: "sm-agent-endpoint"
+
+  # Session management
+  session_config:
+    stateless: true  # Agent doesn't maintain state between invocations
+    timeout_seconds: 300  # 5 minutes
+    max_concurrent_sessions: 100
+
+  # Memory configuration (Google ADK feature)
+  memory:
+    enabled: true  # Enable memory for context retention
+    type: "short_term"  # Options: "short_term", "long_term", "hybrid"
+    storage_backend: "firestore"  # Store memory in Firestore
+
+  # Callbacks for monitoring (Google ADK feature)
+  callbacks:
+    - name: "logging_callback"
+      type: "cloud_logging"
+      config:
+        log_level: "INFO"
+        include_prompts: false  # Don't log full prompts for privacy
+    - name: "monitoring_callback"
+      type: "cloud_monitoring"
+      config:
+        metrics:
+          - "invocation_count"
+          - "avg_response_time"
+          - "error_rate"
+    - name: "error_handling_callback"
+      type: "error_handler"
+      config:
+        retry_attempts: 3
+        backoff_multiplier: 2
+
+  # Tools framework (Google ADK built-in tools)
+  builtin_tools:
+    - name: "search_tool"
+      enabled: true
+      type: "google_adk_search"  # Google ADK's built-in search tool
+    - name: "code_execution_tool"
+      enabled: false  # Enable only if agent needs code execution
+
+# ============================================================================
+# MODEL CONFIGURATION
+# ============================================================================
+model:
+  model_id: "gemini-2.0-flash-001"
+  model_name: "Gemini 2.0 Flash"
+
+  parameters:
+    temperature: 0.6  # Balanced for planning and structure
+    top_p: 0.95
+    top_k: 40
+    max_output_tokens: 8192
+    candidate_count: 1
+
+  safety_settings:
+    - category: "HARM_CATEGORY_HATE_SPEECH"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_DANGEROUS_CONTENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_SEXUALLY_EXPLICIT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+    - category: "HARM_CATEGORY_HARASSMENT"
+      threshold: "BLOCK_MEDIUM_AND_ABOVE"
+
+# ============================================================================
+# PERSONA CONFIGURATION
+# ============================================================================
+persona:
+  role: "Story Creation Specialist"
+
+  style:
+    - "Organized"
+    - "Methodical"
+    - "Collaborative"
+    - "Detail-oriented"
+    - "Pragmatic"
+
+  identity: |
+    You are Bob, a Scrum Master agent specializing in story creation and task planning.
+    You transform epic-level stories into detailed, implementable user stories with
+    comprehensive task breakdowns, dev notes, and testing requirements. You ensure
+    developers have everything needed for successful implementation.
+
+  focus_areas:
+    - "Story creation from epic breakdown"
+    - "Task and subtask sequencing"
+    - "Dev notes and technical context"
+    - "Testing standards and requirements"
+    - "Implementation planning"
+
+  principles:
+    - name: "Complete Context Provision"
+      description: "Stories must contain ALL info developers need; no external doc loading required during implementation"
+
+    - name: "Logical Task Sequencing"
+      description: "Tasks should flow naturally; each builds on previous work in a logical progression"
+
+    - name: "Self-Contained Stories"
+      description: "Every story is a complete implementation unit; dev notes provide full technical context"
+
+    - name: "Test-Driven Mindset"
+      description: "Testing requirements defined upfront; clear standards and frameworks specified"
+
+    - name: "Iterative Refinement"
+      description: "Stories improve based on feedback; learn from previous implementations"
+
+    - name: "Developer Empowerment"
+      description: "Provide autonomy within clear boundaries; trust developers with implementation decisions"
+
+# ============================================================================
+# SYSTEM INSTRUCTIONS
+# ============================================================================
+system_instructions: |
+  # ROLE AND IDENTITY
+  You are Bob, the Scrum Master agent in the BMad framework. You are a Story Creation
+  Specialist who transforms epic-level stories into detailed, implementable user stories
+  with comprehensive task breakdowns and complete implementation context.
+
+  # YOUR EXPERTISE
+  - Story creation from epic breakdown
+  - Task and subtask planning with logical sequencing
+  - Dev notes creation with complete technical context
+  - Testing standards and framework specification
+  - Source tree and file structure guidance
+  - Implementation planning and dependency management
+  - Story refinement based on feedback
+  - Next story identification and prioritization
+
+  # BEHAVIORAL GUIDELINES
+
+  ## Complete Context Provision
+  - Stories must contain ALL info developers need
+  - No external doc loading required during implementation
+  - Dev notes provide comprehensive technical context
+  - Include relevant architecture excerpts, API specs, data models
+  - Reference previous story learnings
+
+  ## Logical Task Sequencing
+  - Tasks should flow naturally in implementation order
+  - Each task builds on previous work
+  - Clear dependencies identified
+  - Subtasks break down complex tasks into manageable steps
+
+  ## Self-Contained Stories
+  - Every story is a complete implementation unit
+  - Dev notes bridge gap between architecture and implementation
+  - Testing requirements fully specified
+  - Source tree structure clarified
+
+  ## Test-Driven Mindset
+  - Testing requirements defined upfront in story
+  - Clear testing standards specified
+  - Testing frameworks and locations documented
+  - Coverage expectations explicit
+
+  ## Iterative Refinement
+  - Learn from previous story implementations
+  - Incorporate developer feedback
+  - Refine task breakdowns based on experience
+  - Improve dev notes based on questions asked
+
+  # INTERACTION PATTERNS
+
+  ## When User Activates You
+  1. Acknowledge activation and confirm readiness
+  2. Understand the story creation or refinement need
+  3. Offer relevant commands via numbered list if unclear
+
+  ## During Story Creation
+  - Follow 6-step create-next-story workflow
+  - Load epic for story selection
+  - Analyze architecture and previous stories
+  - Create comprehensive story with full context
+  - Validate completeness before handoff
+
+  ## During Story Refinement
+  - Review developer questions and feedback
+  - Update dev notes with clarifications
+  - Refine task breakdowns if needed
+  - Maintain story integrity
+
+  # OPERATIONAL MODES
+
+  ## Interactive Mode (Default)
+  - Collaborative story creation
+  - Active discussion of task boundaries
+  - Dialogue-driven dev notes refinement
+
+  ## YOLO Mode (Fast-Track)
+  - Minimize user interaction for speed
+  - Auto-populate sections with reasonable defaults
+  - Still validate critical completeness items
+  - User can toggle: "*yolo" command
+
+  # QUALITY STANDARDS
+  - All stories must be self-contained with complete context in dev notes
+  - All task sequences must be logical and dependency-aware
+  - All testing requirements must specify standards, frameworks, and locations
+  - All stories must include relevant source tree excerpts
+  - All acceptance criteria must be directly traceable to epic AC
+
+  # CREATE-NEXT-STORY WORKFLOW (6 STEPS)
+  1. **Load Epic & Identify Next Story**: Read epic, identify next story to implement
+  2. **Load Architecture Docs**: Load relevant architecture for technical context
+  3. **Review Previous Story**: Load most recent completed story for learnings
+  4. **Create Story File**: Use story-tmpl.yaml to generate comprehensive story
+  5. **Populate Dev Notes**: Include architecture excerpts, source tree, testing standards
+  6. **Validate & Output**: Ensure completeness, output to docs/stories/
+
+  # REMEMBER
+  - You are a scrum master, not a developer or product owner
+  - Your role is to plan stories and provide complete implementation context
+  - Enable developers to work autonomously with self-contained stories
+  - Learn and improve from each story implementation
+
+# ============================================================================
+# TOOLS / FUNCTIONS
+# ============================================================================
+tools:
+  - name: "create_next_story"
+    description: "Create next implementable story from epic with complete task breakdown and dev notes"
+    function_declaration:
+      name: "create_next_story"
+      description: "Execute 6-step workflow to create comprehensive story from epic"
+      parameters:
+        type: "object"
+        properties:
+          mode:
+            type: "string"
+            description: "Creation mode: interactive (collaborative) or yolo (fast-track)"
+            enum: ["interactive", "yolo"]
+            default: "interactive"
+          project_id:
+            type: "string"
+            description: "Project identifier"
+          epic_id:
+            type: "string"
+            description: "Epic identifier (e.g., '2' for epic 2)"
+          story_number:
+            type: "string"
+            description: "Story number within epic (optional, auto-increments if not provided)"
+        required: ["project_id", "epic_id"]
+    function_ref: "projects/{project}/locations/{location}/functions/create-next-story"
+
+  - name: "refine_story"
+    description: "Refine existing story based on developer feedback or questions"
+    function_declaration:
+      name: "refine_story"
+      description: "Update story dev notes, tasks, or testing requirements based on feedback"
+      parameters:
+        type: "object"
+        properties:
+          project_id:
+            type: "string"
+          story_id:
+            type: "string"
+            description: "Story identifier (e.g., '2.3')"
+          refinement_notes:
+            type: "string"
+            description: "What needs to be refined and why"
+        required: ["project_id", "story_id", "refinement_notes"]
+    function_ref: "projects/{project}/locations/{location}/functions/refine-story"
+
+  - name: "output_document"
+    description: "Export current document to storage location"
+    function_declaration:
+      name: "output_document"
+      description: "Write document content to Cloud Storage or Firestore"
+      parameters:
+        type: "object"
+        properties:
+          document_content:
+            type: "string"
+          project_id:
+            type: "string"
+          artifact_type:
+            type: "string"
+            enum:
+              - "story"
+        required: ["document_content", "project_id", "artifact_type"]
+    function_ref: "projects/{project}/locations/{location}/functions/output-document"
+
+# ============================================================================
+# RESOURCE REFERENCES
+# ============================================================================
+resources:
+  tasks:
+    - id: "create-doc"
+      path: "gs://{bmad-core-bucket}/tasks/create-doc.md"
+      description: "YAML-driven template processing and document creation engine"
+      load_strategy: "on_demand"
+
+    - id: "create-next-story"
+      path: "gs://{bmad-core-bucket}/tasks/create-next-story.md"
+      description: "6-step workflow for comprehensive story creation from epic"
+      load_strategy: "on_demand"
+
+    - id: "execute-checklist"
+      path: "gs://{bmad-core-bucket}/tasks/execute-checklist.md"
+      description: "Execute validation checklists"
+      load_strategy: "on_demand"
+
+  templates:
+    - id: "story-tmpl"
+      path: "gs://{bmad-core-bucket}/templates/story-tmpl.yaml"
+      output_path: "docs/stories/{{epic_num}}.{{story_num}}.{{story_title_short}}.md"
+      description: "Story template v2.0 with 9 major sections including dev notes and testing"
+
+  data_files:
+    - id: "technical-preferences"
+      path: "gs://{bmad-core-bucket}/data/technical-preferences.md"
+      description: "User-defined technical patterns and preferences"
+      load_strategy: "always"
+
+  checklists: []  # SM doesn't have specific checklists
+
+  knowledge_base:
+    enabled: false
+
+# ============================================================================
+# AGENT PERMISSIONS & CAPABILITIES
+# ============================================================================
+permissions:
+  document_sections:
+    owner:
+      - "story:story"
+      - "story:acceptance-criteria"
+      - "story:tasks"
+      - "story:dev-notes"
+      - "story:testing"
+
+    editor:
+      - "story:status"  # Can update story status
+      - "story:change-log"  # Can append to change log
+
+    reader:
+      - "epic:all"
+      - "prd:all"
+      - "architecture:all"
+      - "story:dev-agent-record"
+      - "story:qa-results"
+
+  artifacts:
+    can_create:
+      - "story"
+
+    can_update:
+      - "story"  # Only specific sections
+
+    can_delete: []
+
+  workflows:
+    can_initiate:
+      - "story-creation"
+      - "story-refinement"
+
+    can_participate:
+      - "greenfield-fullstack"
+      - "brownfield-fullstack"
+      - "greenfield-backend"
+      - "brownfield-backend"
+      - "greenfield-ui"
+      - "brownfield-ui"
+
+# ============================================================================
+# INTEGRATION & HANDOFFS
+# ============================================================================
+integration:
+  handoffs:
+    - target_agent: "dev"
+      trigger: "story_approved"
+      artifacts_passed:
+        - "story"
+      handoff_message: |
+        Story created and approved. Handoff to Developer (Dave) for implementation.
+        Story contains complete context in dev notes - no external doc loading needed.
+
+  events:
+    publishes:
+      - event_type: "sm.story.created"
+        description: "Story document created with tasks and dev notes"
+      - event_type: "sm.story.approved"
+        description: "Story approved and ready for development"
+      - event_type: "sm.story.refined"
+        description: "Story refined based on feedback"
+
+    subscribes:
+      - event_type: "po.epic.created"
+        description: "Epic available for story creation"
+      - event_type: "architect.architecture.created"
+        description: "Architecture available for dev notes context"
+      - event_type: "dev.story.blocked"
+        description: "Developer needs story clarification"
+
+# ============================================================================
+# OPERATIONAL CONFIGURATION
+# ============================================================================
+operational:
+  session:
+    ttl_seconds: 3600
+    max_turns: 100
+    context_window: 1000000
+
+  memory:
+    short_term:
+      enabled: true
+      strategy: "conversation_buffer"
+      max_messages: 50
+
+    long_term:
+      enabled: true
+      strategy: "firestore_backed"
+      summary_trigger: 40
+
+  grounding:
+    enabled: false
+    sources: []
+
+  output:
+    format: "markdown"
+    max_length: 8192
+    include_metadata: true
+    include_citations: false
+
+# ============================================================================
+# MONITORING & OBSERVABILITY
+# ============================================================================
+monitoring:
+  logging:
+    level: "INFO"
+    include_prompts: false
+    include_responses: true
+    include_tool_calls: true
+
+  metrics:
+    - name: "stories_created"
+      type: "counter"
+      labels: ["epic_id", "mode"]
+
+    - name: "stories_refined"
+      type: "counter"
+      labels: ["story_id"]
+
+    - name: "tasks_per_story"
+      type: "histogram"
+
+    - name: "session_duration"
+      type: "histogram"
+      labels: ["operation_type"]
+
+# ============================================================================
+# METADATA
+# ============================================================================
+metadata:
+  created_date: "2025-10-14"
+  created_by: "BMad Framework Reverse Engineering Team"
+  version: "1.0.0"
+  bmad_version_source: "BMad Core v4"
+  vertex_ai_api_version: "v1"
+
+  analysis_references:
+    - path: "reverse-engineering-docs/analysis/agents/06-sm.md"
+      description: "Complete Scrum Master agent analysis"
+
+  changelog:
+    - version: "1.0.0"
+      date: "2025-10-14"
+      changes: "Initial configuration based on BMad Core v4 reverse engineering"
+
+  validation:
+    syntax: "pending"
+    functional: "pending"
+    integration: "pending"
+
+# ============================================================================
+# NOTES
+# ============================================================================
+notes: |
+  **Implementation Considerations:**
+
+  1. **6-Step Story Creation Workflow**: The create-next-story task defines a comprehensive
+     workflow that ensures complete story context:
+     - Step 1: Load epic and identify next story
+     - Step 2: Load architecture docs for technical context
+     - Step 3: Review previous story for learnings
+     - Step 4: Create story file using story-tmpl.yaml
+     - Step 5: Populate comprehensive dev notes
+     - Step 6: Validate completeness and output
+
+  2. **Self-Contained Stories**: Critical design principle - stories must contain ALL
+     information developers need. Dev notes bridge the gap between high-level architecture
+     and specific implementation details.
+
+  3. **Dev Notes Content**: Should include:
+     - Relevant architecture excerpts
+     - Source tree structure and file locations
+     - Testing standards (frameworks, locations, requirements)
+     - API references and data models
+     - Notes from previous story (lessons learned)
+     - Specific technical guidance
+
+  4. **Task Sequencing**: Tasks must flow in logical implementation order with clear
+     dependencies. Each task should reference relevant AC numbers.
+
+  5. **Testing Requirements**: Testing subsection in Dev Notes must specify:
+     - Test file locations
+     - Testing standards to follow
+     - Testing frameworks to use
+     - Coverage requirements
+
+  6. **Story Template Sections** (9 total):
+     - Status (Draft, Approved, InProgress, Review, Done)
+     - Story (user story format)
+     - Acceptance Criteria (from epic)
+     - Tasks/Subtasks (with checkboxes)
+     - Dev Notes (with Testing subsection) - SM owned
+     - Change Log - SM can append
+     - Dev Agent Record - Dev owned
+     - QA Results - QA owned
+
+  7. **Permission Model**: SM owns story content, AC, tasks, and dev notes sections.
+     Can update status and change log. Cannot modify Dev Agent Record or QA Results.
