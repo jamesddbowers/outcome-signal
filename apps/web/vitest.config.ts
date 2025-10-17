@@ -6,6 +6,12 @@ export default defineConfig({
     environment: "happy-dom",
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/e2e/**", // Exclude Playwright E2E tests from Vitest
+      "**/.{idea,git,cache,output,temp}/**",
+    ],
   },
   resolve: {
     alias: {

@@ -8,7 +8,24 @@ vi.mock("next/font/google", () => ({
   Inter: () => ({ className: "mocked-inter" }),
 }));
 
+// Mock Clerk
+vi.mock("@clerk/nextjs", () => ({
+  ClerkProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="clerk-provider">{children}</div>
+  ),
+}));
+
 describe("RootLayout", () => {
+  it("renders with ClerkProvider", () => {
+    const { getByTestId } = render(
+      <RootLayout>
+        <div data-testid="test-child">Test Content</div>
+      </RootLayout>
+    );
+    expect(getByTestId("clerk-provider")).toBeInTheDocument();
+    expect(getByTestId("test-child")).toBeInTheDocument();
+  });
+
   it("renders children correctly", () => {
     const { container } = render(
       <RootLayout>
