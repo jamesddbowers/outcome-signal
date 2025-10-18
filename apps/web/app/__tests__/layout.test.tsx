@@ -15,6 +15,13 @@ vi.mock("@clerk/nextjs", () => ({
   ),
 }));
 
+// Mock Providers
+vi.mock("../providers", () => ({
+  Providers: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="providers">{children}</div>
+  ),
+}));
+
 describe("RootLayout", () => {
   it("renders with ClerkProvider", () => {
     const { getByTestId } = render(

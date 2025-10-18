@@ -6,25 +6,22 @@ import {
   Panel,
   PanelResizeHandle,
 } from 'react-resizable-panels';
+import { AppSidebar } from '@/components/hierarchy/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ChevronLeft, ChevronRight, PanelLeftClose, PanelRightClose, Menu } from 'lucide-react';
-import LeftPanel from './LeftPanel';
 import MiddlePanel from './MiddlePanel';
 import RightPanel from './RightPanel';
 
 interface WorkspaceShellProps {
   initiativeId: string;
+  epicId?: string;
 }
 
 type PanelRef = ElementRef<typeof Panel>;
 
-export default function WorkspaceShell({ initiativeId }: WorkspaceShellProps): JSX.Element {
+export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellProps): JSX.Element {
   const leftPanelRef = useRef<PanelRef>(null);
   const rightPanelRef = useRef<PanelRef>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -58,9 +55,9 @@ export default function WorkspaceShell({ initiativeId }: WorkspaceShellProps): J
         <PanelGroup
           direction="horizontal"
           className="h-full"
-          autoSaveId="workspace-layout-v1"
+          autoSaveId="workspace-layout-v2"
         >
-          {/* Left Panel */}
+          {/* Left Panel - Hierarchy Sidebar */}
           <Panel
             ref={leftPanelRef}
             id="left"
@@ -83,13 +80,18 @@ export default function WorkspaceShell({ initiativeId }: WorkspaceShellProps): J
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-                <div className="writing-mode-vertical text-sm font-semibold text-muted-foreground whitespace-nowrap" style={{ writingMode: 'vertical-rl' }}>
+                <div
+                  className="writing-mode-vertical text-sm font-semibold text-muted-foreground whitespace-nowrap"
+                  style={{ writingMode: 'vertical-rl' }}
+                >
                   Hierarchy
                 </div>
               </div>
             ) : (
               <>
-                <LeftPanel initiativeId={initiativeId} />
+                <div className="h-full overflow-hidden flex flex-col">
+                  <AppSidebar />
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -107,7 +109,7 @@ export default function WorkspaceShell({ initiativeId }: WorkspaceShellProps): J
 
           {/* Middle Panel */}
           <Panel id="middle" defaultSize={50} minSize={30}>
-            <MiddlePanel initiativeId={initiativeId} />
+            <MiddlePanel initiativeId={initiativeId} epicId={epicId} />
           </Panel>
 
           <PanelResizeHandle className="w-1 bg-border hover:bg-primary/10 transition-colors" />
@@ -135,13 +137,16 @@ export default function WorkspaceShell({ initiativeId }: WorkspaceShellProps): J
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <div className="writing-mode-vertical text-sm font-semibold text-muted-foreground whitespace-nowrap" style={{ writingMode: 'vertical-rl' }}>
+                <div
+                  className="writing-mode-vertical text-sm font-semibold text-muted-foreground whitespace-nowrap"
+                  style={{ writingMode: 'vertical-rl' }}
+                >
                   Agent Chat
                 </div>
               </div>
             ) : (
               <>
-                <RightPanel initiativeId={initiativeId} />
+                <RightPanel initiativeId={initiativeId} epicId={epicId} />
                 <Button
                   variant="ghost"
                   size="icon"
@@ -168,8 +173,8 @@ export default function WorkspaceShell({ initiativeId }: WorkspaceShellProps): J
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-                <LeftPanel initiativeId={initiativeId} />
+              <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
+                <AppSidebar />
               </SheetContent>
             </Sheet>
           </div>
@@ -179,16 +184,16 @@ export default function WorkspaceShell({ initiativeId }: WorkspaceShellProps): J
             <PanelGroup
               direction="horizontal"
               className="h-full"
-              autoSaveId="workspace-layout-tablet-v1"
+              autoSaveId="workspace-layout-tablet-v2"
             >
               <Panel id="middle-tablet" defaultSize={60} minSize={40}>
-                <MiddlePanel initiativeId={initiativeId} />
+                <MiddlePanel initiativeId={initiativeId} epicId={epicId} />
               </Panel>
 
               <PanelResizeHandle className="w-1 bg-border hover:bg-primary/10 transition-colors" />
 
               <Panel id="right-tablet" defaultSize={40} minSize={30}>
-                <RightPanel initiativeId={initiativeId} />
+                <RightPanel initiativeId={initiativeId} epicId={epicId} />
               </Panel>
             </PanelGroup>
           </div>
@@ -204,13 +209,13 @@ export default function WorkspaceShell({ initiativeId }: WorkspaceShellProps): J
             <TabsTrigger value="chat" className="h-11">Chat</TabsTrigger>
           </TabsList>
           <TabsContent value="hierarchy" className="flex-1 mt-0">
-            <LeftPanel initiativeId={initiativeId} />
+            <AppSidebar />
           </TabsContent>
           <TabsContent value="document" className="flex-1 mt-0">
-            <MiddlePanel initiativeId={initiativeId} />
+            <MiddlePanel initiativeId={initiativeId} epicId={epicId} />
           </TabsContent>
           <TabsContent value="chat" className="flex-1 mt-0">
-            <RightPanel initiativeId={initiativeId} />
+            <RightPanel initiativeId={initiativeId} epicId={epicId} />
           </TabsContent>
         </Tabs>
       </div>

@@ -5,9 +5,10 @@ import { Card } from '@/components/ui/card';
 
 interface RightPanelProps {
   initiativeId: string;
+  epicId?: string;
 }
 
-export default function RightPanel({ initiativeId }: RightPanelProps): JSX.Element {
+export default function RightPanel({ initiativeId, epicId }: RightPanelProps): JSX.Element {
   return (
     <Card className="h-full w-full rounded-none border-0 flex flex-col">
       <div className="p-4 pl-14 border-b">
@@ -17,6 +18,11 @@ export default function RightPanel({ initiativeId }: RightPanelProps): JSX.Eleme
         <p className="text-sm text-muted-foreground">
           Initiative ID: {initiativeId}
         </p>
+        {epicId && (
+          <p className="text-sm text-muted-foreground mt-1">
+            Epic ID: {epicId}
+          </p>
+        )}
         <p className="text-sm text-muted-foreground mt-2">
           Placeholder for agent chat interface (Story 2.4)
         </p>
