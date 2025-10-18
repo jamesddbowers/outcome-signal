@@ -4,8 +4,8 @@ test.describe("Dashboard Authentication Flow", () => {
   test("unauthenticated user is redirected to sign-in when accessing dashboard", async ({ page }) => {
     await page.goto("/dashboard");
 
-    // Wait for redirect
-    await page.waitForTimeout(1000);
+    // Wait for redirect to sign-in page
+    await page.waitForURL(/.*sign-in.*/);
 
     // Should redirect to sign-in
     expect(page.url()).toContain("/sign-in");
@@ -15,8 +15,8 @@ test.describe("Dashboard Authentication Flow", () => {
     // Attempt to access dashboard without authentication
     const response = await page.goto("/dashboard");
 
-    // Wait for redirect
-    await page.waitForTimeout(1000);
+    // Wait for redirect to sign-in page
+    await page.waitForURL(/.*sign-in.*/);
 
     // Verify redirected to sign-in page
     expect(page.url()).toContain("/sign-in");
@@ -39,8 +39,8 @@ test.describe("Dashboard Page Structure", () => {
   test("dashboard requires authentication to load", async ({ page }) => {
     await page.goto("/dashboard");
 
-    // Wait for any redirects or page loads
-    await page.waitForTimeout(1500);
+    // Wait for redirect to sign-in page
+    await page.waitForURL(/.*sign-in.*/);
 
     // Should be redirected away from dashboard
     expect(page.url()).not.toContain("/dashboard");

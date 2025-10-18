@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -13,11 +12,10 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps): JSX.Element {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
-  const router = useRouter();
 
   const handleSignOut = async (): Promise<void> => {
+    // Clerk handles redirect automatically after signOut
     await signOut();
-    router.push("/");
   };
 
   if (!isLoaded) {

@@ -3,14 +3,6 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import DashboardLayout from "../layout";
 
-// Mock Next.js router
-const mockPush = vi.fn();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: mockPush,
-  }),
-}));
-
 // Mock Clerk
 const mockSignOut = vi.fn();
 const mockUseUser = vi.fn();
@@ -132,7 +124,7 @@ describe("DashboardLayout", () => {
     expect(signOutButton).toHaveAttribute("aria-label", "Sign out of your account");
   });
 
-  it("calls signOut and redirects when logout button is clicked", async () => {
+  it("calls signOut when logout button is clicked", async () => {
     mockUseUser.mockReturnValue({
       user: {
         firstName: "Charlie",
@@ -151,7 +143,7 @@ describe("DashboardLayout", () => {
 
     await waitFor(() => {
       expect(mockSignOut).toHaveBeenCalled();
-      expect(mockPush).toHaveBeenCalledWith("/");
+      // Clerk handles redirect automatically after signOut
     });
   });
 
