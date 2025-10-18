@@ -60,6 +60,38 @@ const config: Config = {
   				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
+  		typography: {
+  			DEFAULT: {
+  				css: {
+  					'code::before': {
+  						content: '""'
+  					},
+  					'code::after': {
+  						content: '""'
+  					},
+  					'pre': {
+  						backgroundColor: 'hsl(var(--muted))',
+  						color: 'hsl(var(--foreground))',
+  						border: '1px solid hsl(var(--border))',
+  					},
+  					'pre code': {
+  						backgroundColor: 'transparent',
+  						color: 'inherit',
+  					},
+  					'code': {
+  						backgroundColor: 'hsl(var(--muted))',
+  						color: 'hsl(var(--foreground))',
+  						padding: '0.2rem 0.4rem',
+  						borderRadius: '0.25rem',
+  						fontWeight: '400',
+  					},
+  					'blockquote': {
+  						borderLeftColor: 'hsl(var(--border))',
+  						color: 'hsl(var(--muted-foreground))',
+  					},
+  				}
+  			}
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
@@ -89,7 +121,10 @@ const config: Config = {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
+  ],
 };
 
 export default config;
