@@ -222,7 +222,7 @@ describe('WorkspaceShell with Sidebar', () => {
     );
 
     const panelGroup = screen.getAllByTestId('panel-group')[0];
-    expect(panelGroup).toHaveAttribute('data-autosaveid', 'workspace-layout-v2');
+    expect(panelGroup).toHaveAttribute('data-autosaveid', 'workspace-layout');
   });
 
   it('renders mobile layout with tabs (all three tabs)', () => {

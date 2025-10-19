@@ -24,8 +24,8 @@ const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
           heading: {
             levels: [1, 2, 3, 4, 5, 6],
           },
-          codeBlock: true,
-          blockquote: true,
+          codeBlock: {},
+          blockquote: {},
         }),
         Markdown,
       ],

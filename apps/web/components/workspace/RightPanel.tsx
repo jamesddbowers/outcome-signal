@@ -1,32 +1,22 @@
 'use client';
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
+import { AgentChat } from '@/components/chat/AgentChat';
 
 interface RightPanelProps {
   initiativeId: string;
   epicId?: string;
 }
 
-export default function RightPanel({ initiativeId, epicId }: RightPanelProps): JSX.Element {
+export default function RightPanel({ initiativeId }: RightPanelProps): JSX.Element {
   return (
-    <Card className="h-full w-full rounded-none border-0 flex flex-col">
-      <div className="p-4 pl-14 border-b">
+    <div className="h-full w-full flex flex-col">
+      <div className="p-4 pl-14 border-b flex-shrink-0 bg-background">
         <h2 className="text-lg font-semibold">Agent Chat</h2>
       </div>
-      <div className="p-4 flex-1">
-        <p className="text-sm text-muted-foreground">
-          Initiative ID: {initiativeId}
-        </p>
-        {epicId && (
-          <p className="text-sm text-muted-foreground mt-1">
-            Epic ID: {epicId}
-          </p>
-        )}
-        <p className="text-sm text-muted-foreground mt-2">
-          Placeholder for agent chat interface (Story 2.4)
-        </p>
+      <div className="flex-1 overflow-hidden">
+        <AgentChat initiativeId={initiativeId} />
       </div>
-    </Card>
+    </div>
   );
 }
