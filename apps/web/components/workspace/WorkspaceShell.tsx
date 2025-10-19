@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ChevronLeft, ChevronRight, PanelLeftClose, PanelRightClose, Menu } from 'lucide-react';
 import MiddlePanel from './MiddlePanel';
 import RightPanel from './RightPanel';
+import { PhaseIndicator } from './PhaseIndicator';
 
 interface WorkspaceShellProps {
   initiativeId: string;
@@ -51,8 +52,12 @@ export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellP
   return (
     <div className="h-screen w-full">
       {/* Mobile Layout: Tabs (<768px) */}
-      <div className="md:hidden h-full">
-        <Tabs defaultValue="document" className="h-full flex flex-col">
+      <div className="md:hidden h-full flex flex-col">
+        {/* Phase Indicator Header */}
+        <PhaseIndicator initiativeId={initiativeId} />
+
+        {/* Tabs - Flex 1 to take remaining space */}
+        <Tabs defaultValue="document" className="flex-1 flex flex-col">
           <TabsList className="grid w-full grid-cols-3 rounded-none h-12 flex-shrink-0">
             <TabsTrigger value="hierarchy" className="h-11">Hierarchy</TabsTrigger>
             <TabsTrigger value="document" className="h-11">Document</TabsTrigger>
@@ -72,6 +77,9 @@ export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellP
 
       {/* Tablet/Desktop Layout: Resizable Panels (≥768px) */}
       <div className="hidden md:flex h-full flex-col">
+        {/* Phase Indicator Header */}
+        <PhaseIndicator initiativeId={initiativeId} />
+
         {/* Tablet hamburger menu (768px-1023px) */}
         <div className="lg:hidden p-2 border-b flex-shrink-0">
           <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>

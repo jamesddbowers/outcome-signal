@@ -6,10 +6,46 @@
  */
 
 import React, { type ReactNode } from 'react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useInitiatives } from '../useInitiatives';
+
+// Mock Clerk's useSession hook
+vi.mock('@clerk/nextjs', () => ({
+  useSession: vi.fn(() => ({
+    session: {
+      getToken: vi.fn(() => Promise.resolve('mock-clerk-token')),
+    },
+  })),
+}));
+
+// Mock Supabase client
+vi.mock('@/lib/supabase/client', () => ({
+  createClerkSupabaseClient: vi.fn(() => ({
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          order: vi.fn(() => ({
+            data: [
+              {
+                id: '550e8400-e29b-41d4-a716-446655440000',
+                title: 'Customer Portal MVP',
+                description: 'Building a customer-facing portal',
+                status: 'active',
+                phase: 'planning',
+                phase_progress: 37,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+            ],
+            error: null,
+          })),
+        })),
+      })),
+    })),
+  })),
+}));
 
 describe('useInitiatives', () => {
   let queryClient: QueryClient;

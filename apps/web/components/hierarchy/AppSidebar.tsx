@@ -21,9 +21,8 @@ import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useInitiatives } from '@/lib/hooks/useInitiatives';
+import { useInitiatives, type Initiative } from '@/lib/hooks/useInitiatives';
 import { useEpics } from '@/lib/hooks/useEpics';
-import type { Initiative } from '@/lib/services/mock-data';
 import { cn } from '@/lib/utils';
 
 export function AppSidebar(): JSX.Element {

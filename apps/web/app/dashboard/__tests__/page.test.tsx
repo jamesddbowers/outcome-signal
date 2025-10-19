@@ -5,9 +5,20 @@ import Dashboard from "../page";
 
 // Mock Clerk
 const mockUseUser = vi.fn();
+const mockUseSession = vi.fn();
 
 vi.mock("@clerk/nextjs", () => ({
   useUser: () => mockUseUser(),
+  useSession: () => mockUseSession(),
+}));
+
+// Mock useInitiatives hook
+vi.mock("@/lib/hooks/useInitiatives", () => ({
+  useInitiatives: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+  })),
 }));
 
 describe("Dashboard Page", () => {

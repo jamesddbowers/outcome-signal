@@ -14,6 +14,13 @@ vi.mock('@/components/hierarchy/AppSidebar', () => ({
   AppSidebar: () => <div data-testid="app-sidebar">AppSidebar</div>,
 }));
 
+// Mock PhaseIndicator component
+vi.mock('../PhaseIndicator', () => ({
+  PhaseIndicator: ({ initiativeId }: { initiativeId: string }) => (
+    <div data-testid="phase-indicator">Phase Indicator - {initiativeId}</div>
+  ),
+}));
+
 // Mock child panel components
 vi.mock('../MiddlePanel', () => {
   const MiddlePanel = ({ initiativeId, epicId }: { initiativeId: string; epicId?: string }): JSX.Element => (
@@ -283,5 +290,18 @@ describe('WorkspaceShell with Sidebar', () => {
 
     expect(leftCollapseButton).toBeInTheDocument();
     expect(rightCollapseButton).toBeInTheDocument();
+  });
+
+  it('renders PhaseIndicator in header', () => {
+    render(
+      <Wrapper>
+        <WorkspaceShell initiativeId={testInitiativeId} />
+      </Wrapper>
+    );
+
+    // PhaseIndicator should be rendered with initiativeId
+    const phaseIndicators = screen.getAllByTestId('phase-indicator');
+    expect(phaseIndicators.length).toBeGreaterThan(0);
+    expect(phaseIndicators[0]).toHaveTextContent(testInitiativeId);
   });
 });
