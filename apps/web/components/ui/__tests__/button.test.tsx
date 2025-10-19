@@ -53,8 +53,8 @@ describe('Button Component', () => {
     render(<Button size="icon" aria-label="Icon button" />);
     const button = screen.getByRole('button', { name: 'Icon button' });
     expect(button).toBeInTheDocument();
-    expect(button).toHaveClass('h-10');
-    expect(button).toHaveClass('w-10');
+    expect(button).toHaveClass('h-11');
+    expect(button).toHaveClass('w-11');
   });
 
   it('can be disabled', () => {

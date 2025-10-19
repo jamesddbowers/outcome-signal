@@ -127,7 +127,7 @@ function InitiativeItem({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="shrink-0"
             aria-label={isExpanded ? 'Collapse initiative' : 'Expand initiative'}
           >
             <ChevronRight
