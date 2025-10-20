@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, ElementRef } from 'react';
+import React, { useRef, useState, useEffect, ElementRef } from 'react';
 import {
   PanelGroup,
   Panel,
@@ -14,6 +14,7 @@ import { ChevronLeft, ChevronRight, PanelLeftClose, PanelRightClose, Menu } from
 import MiddlePanel from './MiddlePanel';
 import RightPanel from './RightPanel';
 import { PhaseIndicator } from './PhaseIndicator';
+import { useWorkspaceLayoutPreferences } from '@/lib/hooks/useWorkspaceLayoutPreferences';
 
 interface WorkspaceShellProps {
   initiativeId: string;
@@ -22,12 +23,34 @@ interface WorkspaceShellProps {
 
 type PanelRef = ElementRef<typeof Panel>;
 
+/**
+ * WorkspaceShell provides a responsive three-column layout with persistent state.
+ * Panel widths are automatically persisted by react-resizable-panels (via autoSaveId).
+ * Collapse states are persisted via useWorkspaceLayoutPreferences hook.
+ */
 export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellProps): JSX.Element {
   const leftPanelRef = useRef<PanelRef>(null);
   const rightPanelRef = useRef<PanelRef>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isLeftCollapsed, setIsLeftCollapsed] = useState(false);
-  const [isRightCollapsed, setIsRightCollapsed] = useState(false);
+
+  // Persistent layout preferences
+  const {
+    leftCollapsed: isLeftCollapsed,
+    rightCollapsed: isRightCollapsed,
+    updateLeftCollapsed,
+    updateRightCollapsed,
+  } = useWorkspaceLayoutPreferences();
+
+  // Restore collapse state on mount
+  useEffect(() => {
+    if (leftPanelRef.current && isLeftCollapsed) {
+      leftPanelRef.current.collapse();
+    }
+    if (rightPanelRef.current && isRightCollapsed) {
+      rightPanelRef.current.collapse();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount - ignore isLeftCollapsed/isRightCollapsed changes after mount
 
   const handleLeftCollapse = (): void => {
     if (leftPanelRef.current) {
@@ -110,8 +133,8 @@ export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellP
               collapsible
               collapsedSize={4}
               className="relative hidden lg:block transition-all duration-200 ease-in-out"
-              onCollapse={() => setIsLeftCollapsed(true)}
-              onExpand={() => setIsLeftCollapsed(false)}
+              onCollapse={() => updateLeftCollapsed(true)}
+              onExpand={() => updateLeftCollapsed(false)}
               data-testid="left-panel"
             >
               {isLeftCollapsed ? (
@@ -169,8 +192,8 @@ export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellP
               collapsible
               collapsedSize={4}
               className="relative transition-all duration-200 ease-in-out"
-              onCollapse={() => setIsRightCollapsed(true)}
-              onExpand={() => setIsRightCollapsed(false)}
+              onCollapse={() => updateRightCollapsed(true)}
+              onExpand={() => updateRightCollapsed(false)}
               data-testid="right-panel"
             >
               {isRightCollapsed ? (
