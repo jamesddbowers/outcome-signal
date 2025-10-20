@@ -109,12 +109,13 @@ export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellP
               minSize={15}
               collapsible
               collapsedSize={4}
-              className="relative hidden lg:block"
+              className="relative hidden lg:block transition-all duration-200 ease-in-out"
               onCollapse={() => setIsLeftCollapsed(true)}
               onExpand={() => setIsLeftCollapsed(false)}
+              data-testid="left-panel"
             >
               {isLeftCollapsed ? (
-                <div className="h-full w-full bg-muted flex flex-col items-center justify-start pt-4 gap-4">
+                <div className="h-full w-full bg-muted flex flex-col items-center justify-start pt-4 gap-4 transition-opacity duration-200 ease-in-out">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -133,7 +134,7 @@ export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellP
                 </div>
               ) : (
                 <>
-                  <div className="h-full overflow-hidden flex flex-col">
+                  <div className="h-full overflow-hidden flex flex-col transition-opacity duration-200 ease-in-out">
                     <AppSidebar />
                   </div>
                   <Button
@@ -150,14 +151,14 @@ export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellP
             </Panel>
 
             {/* Resize Handle - Desktop only */}
-            <PanelResizeHandle className="hidden lg:block w-1 bg-border hover:bg-primary/10 transition-colors" />
+            <PanelResizeHandle className="hidden lg:block w-1 bg-border hover:bg-primary/20 active:bg-primary/30 transition-all duration-200 ease-in-out cursor-col-resize" />
 
             {/* Middle Panel */}
-            <Panel id="middle" defaultSize={50} minSize={30}>
+            <Panel id="middle" defaultSize={50} minSize={30} className="transition-all duration-200 ease-in-out" data-testid="middle-panel">
               <MiddlePanel initiativeId={initiativeId} epicId={epicId} />
             </Panel>
 
-            <PanelResizeHandle className="w-1 bg-border hover:bg-primary/10 transition-colors" />
+            <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 active:bg-primary/30 transition-all duration-200 ease-in-out cursor-col-resize" />
 
             {/* Right Panel */}
             <Panel
@@ -167,12 +168,13 @@ export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellP
               minSize={20}
               collapsible
               collapsedSize={4}
-              className="relative"
+              className="relative transition-all duration-200 ease-in-out"
               onCollapse={() => setIsRightCollapsed(true)}
               onExpand={() => setIsRightCollapsed(false)}
+              data-testid="right-panel"
             >
               {isRightCollapsed ? (
-                <div className="h-full w-full bg-muted flex flex-col items-center justify-start pt-4 gap-4">
+                <div className="h-full w-full bg-muted flex flex-col items-center justify-start pt-4 gap-4 transition-opacity duration-200 ease-in-out">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -190,7 +192,7 @@ export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellP
                   </div>
                 </div>
               ) : (
-                <>
+                <div className="h-full overflow-hidden transition-opacity duration-200 ease-in-out">
                   <RightPanel initiativeId={initiativeId} epicId={epicId} />
                   <Button
                     variant="ghost"
@@ -201,7 +203,7 @@ export default function WorkspaceShell({ initiativeId, epicId }: WorkspaceShellP
                   >
                     <PanelRightClose className="h-4 w-4" />
                   </Button>
-                </>
+                </div>
               )}
             </Panel>
           </PanelGroup>

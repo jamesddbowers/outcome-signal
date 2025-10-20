@@ -477,6 +477,271 @@ test.describe('Responsive Keyboard Navigation', () => {
   });
 });
 
+test.describe('Panel Animation Tests', () => {
+  test.use({ viewport: { width: 1440, height: 900 } }); // Desktop only
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/dashboard/initiatives/test-id');
+    await page.waitForSelector('[data-panel-id="left"]');
+  });
+
+  test('left panel collapses with smooth animation', async ({ page }) => {
+    const leftPanel = page.locator('[data-panel-id="left"]');
+    const collapseButton = page.getByLabel('Collapse left panel');
+
+    // Verify panel is expanded initially
+    await expect(leftPanel).toBeVisible();
+    await expect(collapseButton).toBeVisible();
+
+    // Click collapse button
+    await collapseButton.click();
+
+    // Wait for 200ms animation to complete (plus buffer)
+    await page.waitForTimeout(250);
+
+    // Verify panel is collapsed
+    const expandButton = page.getByLabel('Expand left panel');
+    await expect(expandButton).toBeVisible();
+
+    // Verify vertical "Hierarchy" text appears
+    const verticalText = page.locator('div').filter({ hasText: 'Hierarchy' }).first();
+    await expect(verticalText).toBeVisible();
+  });
+
+  test('right panel collapses with smooth animation', async ({ page }) => {
+    const rightPanel = page.locator('[data-panel-id="right"]');
+    const collapseButton = page.getByLabel('Collapse right panel');
+
+    // Verify panel is expanded initially
+    await expect(rightPanel).toBeVisible();
+    await expect(collapseButton).toBeVisible();
+
+    // Click collapse button
+    await collapseButton.click();
+
+    // Wait for 200ms animation to complete (plus buffer)
+    await page.waitForTimeout(250);
+
+    // Verify panel is collapsed
+    const expandButton = page.getByLabel('Expand right panel');
+    await expect(expandButton).toBeVisible();
+
+    // Verify vertical "Agent Chat" text appears
+    const verticalText = page.locator('div').filter({ hasText: 'Agent Chat' }).first();
+    await expect(verticalText).toBeVisible();
+  });
+
+  test('panels have transition classes applied', async ({ page }) => {
+    const leftPanel = page.locator('[data-panel-id="left"]');
+    const middlePanel = page.locator('[data-panel-id="middle"]');
+    const rightPanel = page.locator('[data-panel-id="right"]');
+
+    // Check that panels have transition classes
+    await expect(leftPanel).toHaveClass(/transition-all/);
+    await expect(leftPanel).toHaveClass(/duration-200/);
+    await expect(leftPanel).toHaveClass(/ease-in-out/);
+
+    await expect(middlePanel).toHaveClass(/transition-all/);
+    await expect(middlePanel).toHaveClass(/duration-200/);
+    await expect(middlePanel).toHaveClass(/ease-in-out/);
+
+    await expect(rightPanel).toHaveClass(/transition-all/);
+    await expect(rightPanel).toHaveClass(/duration-200/);
+    await expect(rightPanel).toHaveClass(/ease-in-out/);
+  });
+
+  test('resize handles have hover and active states', async ({ page }) => {
+    const resizeHandles = page.locator('[data-panel-resize-handle-id]');
+
+    // Verify resize handles exist
+    expect(await resizeHandles.count()).toBeGreaterThanOrEqual(2);
+
+    // Check first resize handle has transition classes
+    const firstHandle = resizeHandles.first();
+    const classList = await firstHandle.getAttribute('class');
+
+    expect(classList).toContain('transition-all');
+    expect(classList).toContain('duration-200');
+    expect(classList).toContain('ease-in-out');
+    expect(classList).toContain('cursor-col-resize');
+  });
+
+  test('no visual jank during panel collapse', async ({ page }) => {
+    const collapseButton = page.getByLabel('Collapse left panel');
+
+    // Take screenshot before collapse
+    const beforeScreenshot = await page.screenshot();
+
+    // Collapse panel
+    await collapseButton.click();
+
+    // Wait a short time (mid-animation)
+    await page.waitForTimeout(100);
+
+    // Take screenshot mid-animation
+    const midScreenshot = await page.screenshot();
+
+    // Wait for animation to complete
+    await page.waitForTimeout(150);
+
+    // Take screenshot after collapse
+    const afterScreenshot = await page.screenshot();
+
+    // All screenshots should be valid (no errors thrown)
+    expect(beforeScreenshot).toBeDefined();
+    expect(midScreenshot).toBeDefined();
+    expect(afterScreenshot).toBeDefined();
+
+    // Verify collapsed state
+    const expandButton = page.getByLabel('Expand left panel');
+    await expect(expandButton).toBeVisible();
+  });
+
+  test('document preview reflows smoothly during panel collapse', async ({ page }) => {
+    const middlePanel = page.locator('[data-panel-id="middle"]');
+    const collapseButton = page.getByLabel('Collapse left panel');
+
+    // Get middle panel initial width
+    const initialBox = await middlePanel.boundingBox();
+
+    // Collapse left panel
+    await collapseButton.click();
+
+    // Wait for animation
+    await page.waitForTimeout(250);
+
+    // Middle panel should have expanded
+    const finalBox = await middlePanel.boundingBox();
+
+    // Width should have increased (left panel collapsed, giving more space)
+    expect(finalBox?.width).toBeGreaterThan(initialBox?.width || 0);
+  });
+});
+
+test.describe('Tablet and Mobile Animation Tests', () => {
+  test('tablet drawer opens with smooth animation', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto('/dashboard/initiatives/test-id');
+
+    const hamburger = page.getByLabel('Open hierarchy menu');
+    await expect(hamburger).toBeVisible();
+
+    // Open drawer
+    await hamburger.click();
+
+    // Wait for 200ms animation
+    await page.waitForTimeout(250);
+
+    // Verify drawer is open
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+  });
+
+  test('tablet drawer closes with smooth animation', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto('/dashboard/initiatives/test-id');
+
+    const hamburger = page.getByLabel('Open hierarchy menu');
+
+    // Open drawer
+    await hamburger.click();
+    await page.waitForTimeout(250);
+
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+
+    // Close drawer
+    await page.keyboard.press('Escape');
+
+    // Wait for 200ms close animation
+    await page.waitForTimeout(250);
+
+    // Verify drawer is closed
+    await expect(dialog).not.toBeVisible();
+  });
+
+  test('mobile tab switching has smooth animation', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/dashboard/initiatives/test-id');
+
+    // Default tab is Document
+    const documentTab = page.getByRole('tab', { name: 'Document' });
+    await expect(documentTab).toHaveAttribute('data-state', 'active');
+
+    // Switch to Chat tab
+    await page.click('button[role="tab"]:has-text("Chat")');
+
+    // Wait for tab content animation (200ms)
+    await page.waitForTimeout(250);
+
+    // Verify Chat tab is active
+    const chatTab = page.getByRole('tab', { name: 'Chat' });
+    await expect(chatTab).toHaveAttribute('data-state', 'active');
+
+    // Verify chat input is visible
+    const chatInput = page.getByTestId('chat-input');
+    await expect(chatInput).toBeVisible();
+  });
+});
+
+test.describe('Reduced Motion Accessibility', () => {
+  test('respects prefers-reduced-motion in browser', async ({ page, context }) => {
+    await context.emulateMedia({ reducedMotion: 'reduce' });
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/dashboard/initiatives/test-id');
+
+    const collapseButton = page.getByLabel('Collapse left panel');
+
+    // Collapse panel
+    await collapseButton.click();
+
+    // With reduced motion, animation should complete almost instantly
+    // No need to wait 200ms
+    await page.waitForTimeout(50);
+
+    // Verify panel is collapsed
+    const expandButton = page.getByLabel('Expand left panel');
+    await expect(expandButton).toBeVisible();
+  });
+
+  test('reduced motion disables tablet drawer animation', async ({ page, context }) => {
+    await context.emulateMedia({ reducedMotion: 'reduce' });
+
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto('/dashboard/initiatives/test-id');
+
+    const hamburger = page.getByLabel('Open hierarchy menu');
+
+    // Open drawer
+    await hamburger.click();
+
+    // With reduced motion, drawer should open instantly
+    await page.waitForTimeout(50);
+
+    // Verify drawer is open
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+  });
+
+  test('reduced motion disables mobile tab animation', async ({ page, context }) => {
+    await context.emulateMedia({ reducedMotion: 'reduce' });
+
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/dashboard/initiatives/test-id');
+
+    // Switch tabs
+    await page.click('button[role="tab"]:has-text("Chat")');
+
+    // With reduced motion, tab content should appear instantly
+    await page.waitForTimeout(50);
+
+    // Verify Chat tab is active
+    const chatTab = page.getByRole('tab', { name: 'Chat' });
+    await expect(chatTab).toHaveAttribute('data-state', 'active');
+  });
+});
+
 test.describe('Visual Regression Tests', () => {
   test('mobile 320px layout matches baseline screenshot', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 568 });

@@ -58,8 +58,8 @@ export function AppSidebar(): JSX.Element {
   return (
     <div className="flex flex-col h-full bg-card border-r">
       {/* Header */}
-      <div className="px-4 py-3 border-b">
-        <h2 className="text-sm font-semibold">Projects</h2>
+      <div className="p-4 border-b">
+        <h2 className="text-lg font-semibold">Projects</h2>
       </div>
 
       {/* Content */}
