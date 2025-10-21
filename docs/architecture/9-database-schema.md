@@ -37,6 +37,29 @@ CREATE TABLE subscriptions (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Usage Tracking table
+-- Story 3.1: Tracks monthly subscription usage limits per user
+CREATE TABLE usage_tracking (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  month TEXT NOT NULL,  -- Format: 'YYYY-MM'
+  credits_used INTEGER NOT NULL DEFAULT 0 CHECK (credits_used >= 0),
+  credits_limit INTEGER NOT NULL,
+  initiatives_count INTEGER NOT NULL DEFAULT 0 CHECK (initiatives_count >= 0),
+  initiatives_limit INTEGER NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT unique_user_month UNIQUE(user_id, month)
+);
+
+CREATE INDEX idx_usage_tracking_user_id ON usage_tracking(user_id);
+CREATE INDEX idx_usage_tracking_month ON usage_tracking(month);
+
+COMMENT ON TABLE usage_tracking IS 'Tracks monthly subscription usage limits per user';
+COMMENT ON COLUMN usage_tracking.month IS 'Format: YYYY-MM (e.g., 2025-10)';
+COMMENT ON COLUMN usage_tracking.credits_used IS 'Number of AI credits consumed in this month';
+COMMENT ON COLUMN usage_tracking.initiatives_count IS 'Number of initiatives created in this month';
+
 -- Initiatives table
 CREATE TYPE initiative_status AS ENUM ('active', 'archived');
 CREATE TYPE initiative_phase AS ENUM ('planning', 'development', 'testing', 'deployed');
@@ -102,6 +125,30 @@ CREATE POLICY "Users can read own initiatives" ON initiatives
   FOR SELECT USING (user_id IN (
     SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'
   ));
+
+-- Usage Tracking RLS policies (Story 3.1)
+ALTER TABLE usage_tracking ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read own usage tracking" ON usage_tracking
+  FOR SELECT USING (user_id IN (
+    SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'
+  ));
+
+CREATE POLICY "Users can insert own usage tracking" ON usage_tracking
+  FOR INSERT WITH CHECK (user_id IN (
+    SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'
+  ));
+
+CREATE POLICY "Users can update own usage tracking" ON usage_tracking
+  FOR UPDATE USING (user_id IN (
+    SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'
+  ));
+
+-- Updated_at trigger for usage_tracking
+CREATE TRIGGER update_usage_tracking_updated_at 
+  BEFORE UPDATE ON usage_tracking
+  FOR EACH ROW 
+  EXECUTE FUNCTION update_updated_at_column();
 ```
 
 See full document for complete schema including all tables, indexes, and RLS policies.

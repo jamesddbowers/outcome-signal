@@ -49,6 +49,75 @@ interface Subscription {
 }
 ```
 
+**Tier Limits Configuration:**
+```typescript
+interface SubscriptionTierLimits {
+  tier: SubscriptionTier;
+  initiativesLimit: number;  // -1 = unlimited
+  creditsLimit: number;       // -1 = unlimited
+  allowedDocumentTypes: DocumentType[];
+  trialDurationDays: number | null;
+  exportEnabled: boolean;
+}
+
+// Defined in: apps/web/lib/constants/subscription-tiers.ts
+const TIER_LIMITS = {
+  trial: { initiativesLimit: 1, creditsLimit: 0, ... },
+  starter: { initiativesLimit: 3, creditsLimit: 25, ... },
+  professional: { initiativesLimit: -1, creditsLimit: 100, ... },
+  enterprise: { initiativesLimit: -1, creditsLimit: -1, ... },
+};
+```
+
+## Model 2.1: UsageTracking
+
+**Purpose:** Tracks monthly resource consumption against subscription tier limits.
+
+**TypeScript Interface:**
+```typescript
+interface UsageTracking {
+  id: string;
+  user_id: string;
+  month: string;  // Format: 'YYYY-MM' (e.g., '2025-10')
+  credits_used: number;
+  credits_limit: number;
+  initiatives_count: number;
+  initiatives_limit: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface UsageSummary {
+  month: string;
+  credits: {
+    used: number;
+    limit: number;
+    remaining: number;
+    percentUsed: number;
+    isUnlimited: boolean;
+  };
+  initiatives: {
+    count: number;
+    limit: number;
+    remaining: number;
+    percentUsed: number;
+    isUnlimited: boolean;
+  };
+  isOverLimit: boolean;
+}
+```
+
+**Relationships:**
+- Belongs to `User` (N:1)
+- One record per user per month (unique constraint)
+
+**Business Rules:**
+- `month` field uses YYYY-MM format
+- `-1` indicates unlimited for limits
+- `credits_used` and `initiatives_count` must be >= 0
+- Unique constraint on (user_id, month)
+- Resets automatically at month boundary
+
 ## Model 3: Initiative
 
 **Purpose:** Represents a project or product being planned/developed.
