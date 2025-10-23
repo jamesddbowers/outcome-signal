@@ -4,6 +4,8 @@ import React from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import TrialBadge from "@/components/subscription/TrialBadge";
+import { useEnsureSubscription } from "@/lib/hooks/useEnsureSubscription";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -12,13 +14,14 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps): JSX.Element {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
+  const { isLoading: subscriptionLoading, subscription, error: subscriptionError } = useEnsureSubscription();
 
   const handleSignOut = async (): Promise<void> => {
     // Clerk handles redirect automatically after signOut
     await signOut();
   };
 
-  if (!isLoaded) {
+  if (!isLoaded || subscriptionLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-lg">Loading...</div>
@@ -30,6 +33,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): JSX
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-lg">Not authenticated</div>
+      </div>
+    );
+  }
+
+  if (subscriptionError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-lg text-destructive">
+          Error setting up your account: {subscriptionError}
+        </div>
+      </div>
+    );
+  }
+
+  if (!subscription) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-lg">Setting up your account...</div>
       </div>
     );
   }
@@ -46,6 +67,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): JSX
 
           {/* User Info and Logout */}
           <div className="flex items-center gap-4">
+            {/* Trial Badge */}
+            <TrialBadge subscription={subscription} />
             <div className="hidden items-center gap-2 sm:flex">
               <span className="text-sm text-muted-foreground">
                 Welcome, <span className="font-semibold text-foreground">{user.firstName}</span>

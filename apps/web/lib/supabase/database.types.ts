@@ -268,6 +268,50 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_tracking: {
+        Row: {
+          id: string
+          user_id: string
+          month: string
+          credits_used: number
+          credits_limit: number
+          initiatives_count: number
+          initiatives_limit: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          month: string
+          credits_used?: number
+          credits_limit: number
+          initiatives_count?: number
+          initiatives_limit: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          month?: string
+          credits_used?: number
+          credits_limit?: number
+          initiatives_count?: number
+          initiatives_limit?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_tracking_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_executions: {
         Row: {
           completed_at: string | null

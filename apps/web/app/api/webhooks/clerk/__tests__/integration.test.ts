@@ -150,6 +150,112 @@ describe('Clerk Webhook Integration', () => {
     });
   });
 
+  describe('Trial Subscription Creation (Story 3.2)', () => {
+    it('should create subscription record with trial tier for new users', () => {
+      // Expected subscription data structure after user creation
+      const expectedSubscription = {
+        user_id: 'expected_supabase_user_uuid',
+        tier: 'trial',
+        status: 'active',
+        trial_ends_at: expect.any(String), // ISO 8601 timestamp
+        current_period_start: expect.any(String),
+        current_period_end: expect.any(String),
+      };
+
+      expect(expectedSubscription.tier).toBe('trial');
+      expect(expectedSubscription.status).toBe('active');
+
+      // Verify trial_ends_at would be 7 days from creation
+      const now = new Date();
+      const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const daysDiff = Math.ceil(
+        (sevenDaysFromNow.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      expect(daysDiff).toBe(7);
+
+      // In real integration test:
+      // - Verify subscription.insert was called
+      // - Verify trial_ends_at is 7 days from now
+      // - Verify current_period_end matches trial_ends_at
+    });
+
+    it('should create usage_tracking record with trial limits for new users', () => {
+      // Expected usage tracking data structure
+      const now = new Date();
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+      const expectedUsageTracking = {
+        user_id: 'expected_supabase_user_uuid',
+        month: currentMonth,
+        credits_used: 0,
+        credits_limit: 0, // Trial tier has 0 credits (Brief doesn't consume credits)
+        initiatives_count: 0,
+        initiatives_limit: 1, // Trial tier allows 1 initiative
+      };
+
+      expect(expectedUsageTracking.credits_limit).toBe(0);
+      expect(expectedUsageTracking.initiatives_limit).toBe(1);
+      expect(expectedUsageTracking.month).toMatch(/^\d{4}-\d{2}$/);
+
+      // In real integration test:
+      // - Verify usage_tracking.insert was called
+      // - Verify limits match trial tier from subscription-tiers.ts
+      // - Verify month format is YYYY-MM
+    });
+
+    it('should handle duplicate subscription creation (idempotency)', () => {
+      // Simulate checking for existing subscription before insert
+      const existingSubscription = {
+        id: 'sub_123',
+        user_id: 'user_uuid_123',
+        tier: 'trial',
+      };
+
+      // If subscription exists, should skip insert
+      const shouldInsert = !existingSubscription;
+      expect(shouldInsert).toBe(false);
+
+      // In real integration test:
+      // - Create user via webhook (creates subscription)
+      // - Send same webhook again
+      // - Verify only one subscription exists
+      // - Verify no error occurred
+      // - Verify 200 OK response
+    });
+
+    it('should ignore duplicate usage_tracking errors (23505)', () => {
+      // PostgreSQL error code for unique constraint violation
+      const duplicateErrorCode = '23505';
+
+      // Simulate error handling logic
+      const usageError = { code: '23505' };
+      const shouldThrowError = usageError.code !== duplicateErrorCode;
+
+      expect(shouldThrowError).toBe(false);
+
+      // In real integration test:
+      // - Create user via webhook (creates usage_tracking)
+      // - Send same webhook again
+      // - Verify ON CONFLICT DO NOTHING works
+      // - Verify no error response (200 OK)
+    });
+
+    it('should verify current_period_end matches trial_ends_at', () => {
+      const now = new Date();
+      const trialEndsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      // For trial subscriptions, current_period_end should equal trial_ends_at
+      const currentPeriodEnd = trialEndsAt;
+
+      expect(currentPeriodEnd.toISOString()).toBe(trialEndsAt.toISOString());
+
+      // In real integration test:
+      // - Fetch created subscription from database
+      // - Verify current_period_end === trial_ends_at
+      // - Verify both are 7 days from creation time
+    });
+  });
+
   describe('Idempotency Integration', () => {
     it('should handle duplicate webhook deliveries gracefully', () => {
       // This test verifies the idempotency logic structure

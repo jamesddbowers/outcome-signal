@@ -12,9 +12,15 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "test": "turbo test",
-    "clean": "turbo clean && rm -rf node_modules"
+    "clean": "turbo clean && rm -rf node_modules",
+    "test:setup": "tsx scripts/test-setup.ts",
+    "test:teardown": "tsx scripts/test-teardown.ts"
   },
   "devDependencies": {
+    "@inquirer/prompts": "^7.9.0",
+    "chalk": "^5.6.2",
+    "dotenv": "^17.2.3",
+    "tsx": "^4.20.6",
     "turbo": "^2.5.8"
   },
   "packageManager": "pnpm@8.15.1",

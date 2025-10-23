@@ -1,6 +1,7 @@
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
+import { createTrialSubscriptionForUser } from '@/lib/utils/trial-subscription';
 
 // TypeScript types for Clerk webhook events
 interface ClerkUserCreatedEvent {
@@ -165,6 +166,19 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     console.log(`User created successfully: ${insertedUser.id} (clerk_user_id: ${id})`);
+
+    // Create trial subscription and usage tracking using shared utility
+    const result = await createTrialSubscriptionForUser(
+      insertedUser.id,
+      supabaseAdmin,
+      '[Webhook]'
+    );
+
+    if (result.error) {
+      console.error('Error creating trial subscription:', result.error);
+      return new Response('Error creating subscription', { status: 500 });
+    }
+
     return new Response('User created successfully', { status: 200 });
   } catch (error) {
     console.error('Unexpected error processing webhook:', error);

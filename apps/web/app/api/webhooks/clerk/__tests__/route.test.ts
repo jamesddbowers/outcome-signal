@@ -16,9 +16,15 @@ vi.mock('svix', () => ({
   Webhook: vi.fn(),
 }));
 
+// Mock the shared trial subscription utility
+vi.mock('@/lib/utils/trial-subscription', () => ({
+  createTrialSubscriptionForUser: vi.fn(),
+}));
+
 import { headers } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 import { Webhook } from 'svix';
+import { createTrialSubscriptionForUser } from '@/lib/utils/trial-subscription';
 
 describe('POST /api/webhooks/clerk', () => {
   const mockHeaders = new Map<string, string>();
@@ -54,6 +60,19 @@ describe('POST /api/webhooks/clerk', () => {
       verify: mockWebhookVerify,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as any);
+
+    // Mock trial subscription utility - default to success
+    vi.mocked(createTrialSubscriptionForUser).mockResolvedValue({
+      subscription: {
+        id: 'sub_mock',
+        user_id: 'user_mock',
+        tier: 'trial',
+        status: 'active',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      error: null,
+      isNew: true,
+    });
   });
 
   afterEach(() => {
@@ -256,6 +275,13 @@ describe('POST /api/webhooks/clerk', () => {
         last_name: 'User',
         avatar_url: 'https://example.com/avatar.jpg',
       });
+
+      // Verify trial subscription utility was called
+      expect(createTrialSubscriptionForUser).toHaveBeenCalledWith(
+        'uuid-123',
+        expect.anything(),
+        '[Webhook]'
+      );
     });
 
     it('should handle null optional fields', async () => {
@@ -492,6 +518,91 @@ describe('POST /api/webhooks/clerk', () => {
       expect(response.status).toBe(500);
       const text = await response.text();
       expect(text).toContain('Internal server error');
+    });
+  });
+
+
+  describe('Trial Subscription Creation (Story 3.2 - Refactored)', () => {
+    it('should call createTrialSubscriptionForUser utility after user creation', async () => {
+      mockWebhookVerify.mockReturnValue({
+        type: 'user.created',
+        data: {
+          id: 'user_123',
+          email_addresses: [{ email_address: 'test@example.com', id: 'email_1' }],
+          first_name: 'Test',
+          last_name: 'User',
+          image_url: null,
+          created_at: 1234567890,
+        },
+      });
+
+      mockSupabaseClient.from.mockReturnValue({
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: { id: 'user_uuid_123', clerk_user_id: 'user_123' },
+              error: null,
+            }),
+          }),
+        }),
+      });
+
+      const request = new Request('http://localhost/api/webhooks/clerk', {
+        method: 'POST',
+        body: JSON.stringify({ type: 'user.created' }),
+      });
+
+      const response = await POST(request);
+      expect(response.status).toBe(200);
+
+      // Verify utility was called with correct arguments
+      expect(createTrialSubscriptionForUser).toHaveBeenCalledWith(
+        'user_uuid_123',
+        expect.anything(), // supabase client
+        '[Webhook]'
+      );
+    });
+
+    it('should return 500 if trial subscription creation fails', async () => {
+      mockWebhookVerify.mockReturnValue({
+        type: 'user.created',
+        data: {
+          id: 'user_456',
+          email_addresses: [{ email_address: 'error@example.com', id: 'email_2' }],
+          first_name: 'Error',
+          last_name: 'Test',
+          image_url: null,
+          created_at: 1234567890,
+        },
+      });
+
+      mockSupabaseClient.from.mockReturnValue({
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: { id: 'user_uuid_456', clerk_user_id: 'user_456' },
+              error: null,
+            }),
+          }),
+        }),
+      });
+
+      // Mock utility to return error
+      vi.mocked(createTrialSubscriptionForUser).mockResolvedValueOnce({
+        subscription: null,
+        error: 'Failed to create subscription',
+        isNew: false,
+      });
+
+      const request = new Request('http://localhost/api/webhooks/clerk', {
+        method: 'POST',
+        body: JSON.stringify({ type: 'user.created' }),
+      });
+
+      const response = await POST(request);
+      expect(response.status).toBe(500);
+      const text = await response.text();
+      expect(text).toContain('Error creating subscription');
     });
   });
 });

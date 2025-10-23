@@ -179,3 +179,32 @@
 - Display usage in dashboard: "Credits: 12 / 25 used this month"
 
 ---
+
+## Story 3.9: Update Trial Tier to Include 5 AI Credits
+**As a** trial user
+**I want** to have 5 AI credits to experiment with Brief generation
+**So that** I can fully evaluate OutcomeSignal's AI capabilities including revisions
+
+**Acceptance Criteria:**
+1. Update `TIER_LIMITS.trial` constants in `subscription-tiers.ts`:
+   - Change `creditsLimit: 0` → `creditsLimit: 5`
+   - Keep `allowedDocumentTypes: ['brief']` (Brief-only remains)
+2. Create database migration to update existing trial users:
+   - Update all `usage_tracking` records where user has trial tier
+   - Set `credits_limit = 5` for current month
+3. Update Clerk webhook to create new trial users with 5 credits
+4. Update all unit tests to reflect new trial credit limit
+5. Update documentation to reflect trial tier includes 5 credits
+
+**Technical Notes:**
+- Migration must be idempotent (safe to run multiple times)
+- Existing trial users who already used credits should still get 5 credit limit
+- QA test plan already assumes 5 credits for trial tier
+
+**Business Justification:**
+- Allows trial users to generate Brief + request 2-3 revisions (1 credit each)
+- Demonstrates AI agent quality through iterative refinement
+- Aligns with QA team's test assumptions (test-plan.md uses 5 credits)
+- Small LLM cost increase (~$0.50/trial) for better conversion demonstration
+
+---
