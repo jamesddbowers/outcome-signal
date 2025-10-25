@@ -10,8 +10,10 @@ import type { Database } from './supabase-admin';
 export type TestScenario =
   | 'new-trial'
   | 'trial-with-initiative'
+  | 'trial-at-initiative-limit'
   | 'trial-expiring-soon'
   | 'trial-expired'
+  | 'paid-starter'
   | 'paid-professional';
 
 export interface ScenarioConfig {
@@ -37,6 +39,13 @@ export const SCENARIOS: Record<TestScenario, ScenarioConfig> = {
     includeDocuments: true,
     includeConversation: true,
   },
+  'trial-at-initiative-limit': {
+    name: 'Trial User at Initiative Limit',
+    description: 'Trial user with 1 initiative already created - tests disabled Create Initiative button (Story 3.3 - AC 1)',
+    includeInitiative: true,
+    includeDocuments: false,
+    includeConversation: false,
+  },
   'trial-expiring-soon': {
     name: 'Trial User Expiring Soon (1 day)',
     description: 'Trial ending tomorrow - tests warning badge (Story 3.2 - AC 4)',
@@ -47,6 +56,13 @@ export const SCENARIOS: Record<TestScenario, ScenarioConfig> = {
   'trial-expired': {
     name: 'Expired Trial User',
     description: 'Trial ended yesterday - tests expired badge (Story 3.2 - AC 4)',
+    includeInitiative: false,
+    includeDocuments: false,
+    includeConversation: false,
+  },
+  'paid-starter': {
+    name: 'Paid User (Starter)',
+    description: 'Starter tier user with 0 initiatives - can create up to 3/month (Story 3.3 - AC 1)',
     includeInitiative: false,
     includeDocuments: false,
     includeConversation: false,
@@ -76,6 +92,7 @@ export function generateSubscription(
   switch (scenario) {
     case 'new-trial':
     case 'trial-with-initiative':
+    case 'trial-at-initiative-limit':
       return {
         user_id: userId,
         tier: 'trial',
@@ -111,6 +128,18 @@ export function generateSubscription(
         stripe_customer_id: null,
       };
 
+    case 'paid-starter':
+      return {
+        user_id: userId,
+        tier: 'starter',
+        status: 'active',
+        trial_ends_at: null,
+        current_period_start: now.toISOString(),
+        current_period_end: thirtyDays.toISOString(),
+        stripe_subscription_id: 'sub_test_starter_123',
+        stripe_customer_id: 'cus_test_starter_123',
+      };
+
     case 'paid-professional':
       return {
         user_id: userId,
@@ -137,7 +166,6 @@ export function generateUsageTracking(
 
   switch (scenario) {
     case 'new-trial':
-    case 'trial-with-initiative':
     case 'trial-expiring-soon':
     case 'trial-expired':
       return {
@@ -147,6 +175,36 @@ export function generateUsageTracking(
         credits_limit: 0, // Trial has 0 credits (Brief doesn't consume credits)
         initiatives_count: 0,
         initiatives_limit: 1, // Trial limited to 1 initiative
+      };
+
+    case 'trial-with-initiative':
+      return {
+        user_id: userId,
+        month: currentMonth,
+        credits_used: 0,
+        credits_limit: 0,
+        initiatives_count: 0, // Will be incremented when initiative is created
+        initiatives_limit: 1,
+      };
+
+    case 'trial-at-initiative-limit':
+      return {
+        user_id: userId,
+        month: currentMonth,
+        credits_used: 0,
+        credits_limit: 0,
+        initiatives_count: 1, // Already at limit! This tests the disabled button state
+        initiatives_limit: 1,
+      };
+
+    case 'paid-starter':
+      return {
+        user_id: userId,
+        month: currentMonth,
+        credits_used: 0,
+        credits_limit: 25, // Starter tier has 25 credits
+        initiatives_count: 0, // No initiatives yet - can create up to 3
+        initiatives_limit: 3, // Starter limited to 3 initiatives/month
       };
 
     case 'paid-professional':
