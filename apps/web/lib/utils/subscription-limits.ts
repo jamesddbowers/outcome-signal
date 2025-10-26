@@ -16,7 +16,7 @@ export interface LimitCheckResult {
   /** Whether the action is allowed */
   allowed: boolean;
   /** Reason why action was blocked (if not allowed) */
-  reason?: 'limit_reached' | 'document_type_restricted' | 'export_restricted' | 'unauthorized';
+  reason?: 'limit_reached' | 'document_type_restricted' | 'export_restricted' | 'unauthorized' | 'trial_expired';
   /** Current usage count (for limits that track usage) */
   currentCount?: number;
   /** Maximum limit (for limits that track usage) */
@@ -104,10 +104,10 @@ export async function checkInitiativeLimit(clerkUserId: string): Promise<LimitCh
       timestamp: now.toISOString(),
     });
 
-    // Get user's subscription tier
+    // Get user's subscription tier and status
     const { data: subscription, error: subError } = await supabaseAdmin
       .from('subscriptions')
-      .select('tier')
+      .select('tier, status')
       .eq('user_id', supabaseUserId)
       .single();
 
@@ -116,6 +116,16 @@ export async function checkInitiativeLimit(clerkUserId: string): Promise<LimitCh
       return {
         allowed: false,
         reason: 'unauthorized',
+      };
+    }
+
+    // Check if subscription is expired - this blocks ALL actions
+    if (subscription.status === 'expired') {
+      console.log('[checkInitiativeLimit] Subscription is expired, blocking creation');
+      return {
+        allowed: false,
+        reason: 'trial_expired',
+        tier: subscription.tier as SubscriptionTier,
       };
     }
 

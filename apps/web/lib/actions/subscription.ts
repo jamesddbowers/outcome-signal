@@ -11,8 +11,24 @@ import { auth, clerkClient } from '@clerk/nextjs/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { createTrialSubscriptionForUser } from '@/lib/utils/trial-subscription';
 import type { Database } from '@/lib/supabase/database.types';
+import { unstable_cache } from 'next/cache';
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
+type SubscriptionTier = Database['public']['Enums']['subscription_tier'];
+type SubscriptionStatus = Database['public']['Enums']['subscription_status'];
+
+/**
+ * Subscription Access Check
+ * Describes user's subscription capabilities and status
+ */
+export interface SubscriptionAccessCheck {
+  canCreateInitiative: boolean;
+  canGenerateDocuments: boolean;
+  isExpired: boolean;
+  tier: SubscriptionTier;
+  status: SubscriptionStatus;
+  daysRemaining: number | null; // For active trials
+}
 
 /**
  * Fetches the current user's subscription record
@@ -229,3 +245,108 @@ export async function createTrialSubscriptionIfNeeded(): Promise<Subscription | 
     return null;
   }
 }
+
+/**
+ * Helper function to calculate days between two dates
+ */
+function daysBetween(date1: Date, date2: Date): number {
+  const diffTime = date2.getTime() - date1.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+}
+
+/**
+ * Internal function to check subscription access (not cached)
+ */
+async function _checkSubscriptionAccess(): Promise<SubscriptionAccessCheck | null> {
+  try {
+    // Get authenticated user ID from Clerk
+    const { userId } = await auth();
+    if (!userId) {
+      console.log('[checkSubscriptionAccess] No authenticated user found');
+      return null;
+    }
+
+    // Use admin client to bypass RLS policies
+    const supabase = getSupabaseAdmin();
+
+    // First, get the Supabase user ID from Clerk user ID
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_user_id', userId)
+      .single();
+
+    if (userError || !user) {
+      console.log('[checkSubscriptionAccess] User not found in Supabase');
+      return null;
+    }
+
+    // Get the subscription
+    const { data: subscription, error: subscriptionError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (subscriptionError || !subscription) {
+      console.log('[checkSubscriptionAccess] Subscription not found');
+      return null;
+    }
+
+    const isExpired = subscription.status === 'expired';
+    const isActive = subscription.status === 'active';
+
+    // Calculate days remaining for active trials
+    let daysRemaining: number | null = null;
+    if (subscription.tier === 'trial' && subscription.trial_ends_at && isActive) {
+      const now = new Date();
+      const endsAt = new Date(subscription.trial_ends_at);
+      daysRemaining = daysBetween(now, endsAt);
+
+      // Ensure daysRemaining is never negative for active trials
+      if (daysRemaining < 0) {
+        daysRemaining = 0;
+      }
+    }
+
+    return {
+      canCreateInitiative: isActive,
+      canGenerateDocuments: isActive,
+      isExpired,
+      tier: subscription.tier,
+      status: subscription.status,
+      daysRemaining,
+    };
+  } catch (error) {
+    console.error('[checkSubscriptionAccess] Unexpected error:', error);
+    return null;
+  }
+}
+
+/**
+ * Checks user's subscription access and capabilities
+ * Cached for 5 minutes to reduce database queries
+ *
+ * @returns Subscription access information including capabilities, status, and days remaining
+ *
+ * @example
+ * ```typescript
+ * const access = await checkSubscriptionAccess();
+ * if (access?.isExpired) {
+ *   // Show paywall modal
+ * } else if (access?.canCreateInitiative) {
+ *   // Allow initiative creation
+ * }
+ * ```
+ */
+export const checkSubscriptionAccess = unstable_cache(
+  async (): Promise<SubscriptionAccessCheck | null> => {
+    return await _checkSubscriptionAccess();
+  },
+  ['subscription-access'],
+  {
+    revalidate: 300, // Cache for 5 minutes (300 seconds)
+    tags: ['subscription-access'],
+  }
+);

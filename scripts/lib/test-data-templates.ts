@@ -13,6 +13,7 @@ export type TestScenario =
   | 'trial-at-initiative-limit'
   | 'trial-expiring-soon'
   | 'trial-expired'
+  | 'trial-expired-with-data'
   | 'paid-starter'
   | 'paid-professional';
 
@@ -55,9 +56,16 @@ export const SCENARIOS: Record<TestScenario, ScenarioConfig> = {
   },
   'trial-expired': {
     name: 'Expired Trial User',
-    description: 'Trial ended yesterday - tests expired badge (Story 3.2 - AC 4)',
+    description: 'Trial ended yesterday - tests Story 3.4: expired badge, disabled create button, paywall modal on login, read-only access (Story 3.4 - AC 3)',
     includeInitiative: false,
     includeDocuments: false,
+    includeConversation: false,
+  },
+  'trial-expired-with-data': {
+    name: 'Expired Trial User with Existing Initiative',
+    description: 'Trial ended yesterday with 1 initiative - tests Story 3.4: read-only access to existing initiatives, cannot create new ones (Story 3.4 - AC 3)',
+    includeInitiative: true,
+    includeDocuments: true,
     includeConversation: false,
   },
   'paid-starter': {
@@ -117,6 +125,7 @@ export function generateSubscription(
       };
 
     case 'trial-expired':
+    case 'trial-expired-with-data':
       return {
         user_id: userId,
         tier: 'trial',
@@ -175,6 +184,16 @@ export function generateUsageTracking(
         credits_limit: 0, // Trial has 0 credits (Brief doesn't consume credits)
         initiatives_count: 0,
         initiatives_limit: 1, // Trial limited to 1 initiative
+      };
+
+    case 'trial-expired-with-data':
+      return {
+        user_id: userId,
+        month: currentMonth,
+        credits_used: 0,
+        credits_limit: 0,
+        initiatives_count: 1, // Has 1 existing initiative (at limit, but can't create anyway due to expired status)
+        initiatives_limit: 1,
       };
 
     case 'trial-with-initiative':

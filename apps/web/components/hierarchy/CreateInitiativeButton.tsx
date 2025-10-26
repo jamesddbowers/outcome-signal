@@ -54,8 +54,10 @@ export function CreateInitiativeButton({
         setCanCreate(result.allowed);
 
         if (!result.allowed) {
-          // Set tooltip message based on tier
-          if (result.tier === 'trial') {
+          // Set tooltip message based on reason
+          if (result.reason === 'trial_expired') {
+            setTooltipMessage('Your trial has expired. Upgrade to continue.');
+          } else if (result.tier === 'trial') {
             setTooltipMessage('Upgrade to Starter to create up to 3 Initiatives/month');
           } else if (result.tier === 'starter') {
             setTooltipMessage('Upgrade to Professional for unlimited Initiatives');

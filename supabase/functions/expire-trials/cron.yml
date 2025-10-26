@@ -1,0 +1,5 @@
+# Cron schedule for expire-trials Edge Function
+# Runs daily at midnight UTC (0 0 * * *)
+# Format: minute hour day month weekday
+
+schedule: "0 0 * * *"

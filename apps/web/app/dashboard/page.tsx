@@ -19,6 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { CreateInitiativeButton } from "@/components/hierarchy/CreateInitiativeButton";
 import { useRouter } from "next/navigation";
+import { PaywallModal } from "@/components/subscription/PaywallModal";
+import { checkSubscriptionAccess } from "@/lib/actions/subscription";
 
 export default function Dashboard(): JSX.Element {
   const { user, isLoaded } = useUser();
@@ -31,6 +33,29 @@ export default function Dashboard(): JSX.Element {
   const [description, setDescription] = React.useState("");
   const [isCreating, setIsCreating] = React.useState(false);
   const [createError, setCreateError] = React.useState("");
+
+  // Paywall state
+  const [showPaywall, setShowPaywall] = React.useState(false);
+  const [isExpired, setIsExpired] = React.useState(false);
+
+  // Check subscription status on mount
+  React.useEffect(() => {
+    async function checkSubscription(): Promise<void> {
+      try {
+        const access = await checkSubscriptionAccess();
+        if (access?.isExpired) {
+          setIsExpired(true);
+          setShowPaywall(true);
+        }
+      } catch (error) {
+        console.error('Error checking subscription status:', error);
+      }
+    }
+
+    if (isLoaded && user) {
+      void checkSubscription();
+    }
+  }, [isLoaded, user]);
 
   const handleCreateClick = (): void => {
     setIsCreateDialogOpen(true);
@@ -60,7 +85,11 @@ export default function Dashboard(): JSX.Element {
 
       if (!response.ok) {
         // Handle specific error cases
-        if (data.error === "INITIATIVE_LIMIT_REACHED") {
+        if (data.error === "TRIAL_EXPIRED") {
+          setIsCreateDialogOpen(false);
+          setShowPaywall(true);
+          return;
+        } else if (data.error === "INITIATIVE_LIMIT_REACHED") {
           setCreateError(data.message);
         } else {
           setCreateError(data.message || "Failed to create initiative");
@@ -243,6 +272,14 @@ export default function Dashboard(): JSX.Element {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Paywall Modal for Expired Trials */}
+      <PaywallModal
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        trigger_reason="trial_expired"
+        canDismiss={!isExpired}
+      />
     </>
   );
 }

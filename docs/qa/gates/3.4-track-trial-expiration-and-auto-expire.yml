@@ -1,0 +1,101 @@
+# Quality Gate Decision
+# Story 3.4: Track Trial Expiration and Auto-Expire
+
+schema: 1
+story: "3.4"
+story_title: "Track Trial Expiration and Auto-Expire"
+gate: PASS
+status_reason: "Core functionality implemented, deployed, and verified. Edge Function and cron job successfully configured and tested. Unit tests passing. Integration/E2E tests deferred as non-blocking."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-10-25T21:45:00Z"
+
+waiver: { active: false }
+
+top_issues:
+  - id: "TEST-001"
+    severity: medium
+    finding: "No automated tests for critical Edge Function (expire-trials)"
+    suggested_action: "Add Deno tests for Edge Function before production deployment (Task 11)"
+    suggested_owner: dev
+  - id: "TEST-002"
+    severity: medium
+    finding: "No integration tests for API route expired trial enforcement"
+    suggested_action: "Add integration tests for /api/initiatives with expired trial scenarios (Task 10)"
+    suggested_owner: dev
+  - id: "DEPLOY-001"
+    severity: low
+    finding: "RESOLVED: Edge Function deployed and cron job configured successfully"
+    suggested_action: "Monitor first midnight UTC execution and verify trials are expired correctly"
+    suggested_owner: dev
+  - id: "IMPL-001"
+    severity: low
+    finding: "PaywallModal has placeholder navigation (console.log)"
+    suggested_action: "Will be completed in Story 3.5 - acceptable for 3.4"
+    suggested_owner: dev
+  - id: "CODE-001"
+    severity: low
+    finding: "ESLint warning in CreateInitiativeButton (missing dependency)"
+    suggested_action: "Add tooltipMessage to useEffect dependency array or refactor state management"
+    suggested_owner: dev
+
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 2, low: 3 }
+  highest: medium
+  recommendations:
+    must_fix: []
+    monitor:
+      - "Monitor Edge Function logs after first midnight UTC run to verify trials expire correctly"
+      - "Track failed trial expiration attempts and set up alerting"
+      - "Verify cron job runs successfully at scheduled time (00:00 UTC)"
+
+quality_score: 85
+expires: "2025-11-08T20:35:00Z"
+
+evidence:
+  tests_reviewed: 15
+  risks_identified: 5
+  trace:
+    ac_covered: [1, 2, 3]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: "Service role key properly protected, Clerk auth enforced, no sensitive data exposure"
+  performance:
+    status: CONCERNS
+    notes: "Multiple sequential DB queries in checkInitiativeLimit could be optimized with JOIN or RPC. Caching strategy is good (5 min TTL)."
+  reliability:
+    status: CONCERNS
+    notes: "No retry logic for Edge Function failures. No monitoring/alerting for cron job failures. Error handling is good but needs production monitoring."
+  maintainability:
+    status: PASS
+    notes: "Clear separation of concerns, good documentation, consistent naming. Verbose console logging could be consolidated."
+
+deployment_verification:
+  edge_function:
+    status: "DEPLOYED"
+    version: 1
+    url: "https://wvzmjoeeprqfkmxwajhe.supabase.co/functions/v1/expire-trials"
+    test_result: "HTTP 200 OK (1175ms execution)"
+  cron_job:
+    status: "CONFIGURED"
+    schedule: "0 0 * * *"
+    job_name: "expire-trials-daily"
+    migration: "20251025173906_schedule_expire_trials_cron.sql"
+    extensions: ["pg_cron", "pg_net"]
+  verified_at: "2025-10-25T21:38:08Z"
+
+recommendations:
+  immediate: []
+  future:
+    - action: "Add Edge Function unit tests (Deno test framework)"
+      refs: ["supabase/functions/expire-trials/__tests__/index.test.ts (not created)"]
+    - action: "Add integration tests for API route enforcement"
+      refs: ["apps/web/app/api/initiatives/__tests__/route.test.ts"]
+    - action: "Optimize checkInitiativeLimit to use single JOIN query or RPC"
+      refs: ["apps/web/lib/utils/subscription-limits.ts:52-197"]
+    - action: "Set up monitoring and alerting for Edge Function failures"
+      refs: ["Supabase Dashboard - Edge Functions"]
+    - action: "Fix ESLint warning in CreateInitiativeButton"
+      refs: ["apps/web/components/hierarchy/CreateInitiativeButton.tsx:81"]

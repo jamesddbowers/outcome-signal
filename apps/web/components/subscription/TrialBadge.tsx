@@ -39,6 +39,15 @@ export default function TrialBadge({ subscription }: TrialBadgeProps): JSX.Eleme
     return null;
   }
 
+  // Check if trial is expired
+  if (subscription.status === 'expired') {
+    return (
+      <Badge variant="destructive" className="bg-red-600 text-white">
+        Trial Expired - Upgrade Required
+      </Badge>
+    );
+  }
+
   // Calculate days remaining
   const daysRemaining = calculateTrialDaysRemaining(subscription.trial_ends_at);
 

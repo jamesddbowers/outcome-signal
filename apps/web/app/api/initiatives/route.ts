@@ -118,6 +118,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         limit: limitCheck.limit,
       });
 
+      // Handle trial expiration separately
+      if (limitCheck.reason === 'trial_expired') {
+        return NextResponse.json(
+          {
+            error: 'TRIAL_EXPIRED',
+            message: 'Your trial has expired. Upgrade to continue using OutcomeSignal.',
+            tier: limitCheck.tier,
+            status: 'expired',
+          },
+          { status: 403 }
+        );
+      }
+
       return NextResponse.json(
         {
           error: 'INITIATIVE_LIMIT_REACHED',
