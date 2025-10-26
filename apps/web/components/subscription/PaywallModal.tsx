@@ -1,14 +1,14 @@
 /**
  * Paywall Modal Component
- * Story 3.4: Track Trial Expiration and Auto-Expire (Minimal Version)
+ * Story 3.5: Build Paywall Modal with Tier Comparison
  *
- * Displays upgrade prompt when users hit subscription limits or trial expires.
- * This is a minimal implementation for Story 3.4 - will be enhanced in Story 3.5.
+ * Displays upgrade prompt with full tier comparison when users hit subscription
+ * limits or trial expires. Includes analytics tracking and plan selection.
  */
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,12 +18,17 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import { TierComparisonTable } from './TierComparisonTable';
+import type { SubscriptionTier } from '@/lib/constants/subscription-tiers';
+import {
+  trackPaywallShown,
+  trackPaywallDismissed,
+  trackPlanSelected,
+  type PaywallTriggerReason,
+} from '@/lib/analytics/paywall-events';
 
-export type PaywallTriggerReason =
-  | 'trial_expired'
-  | 'initiative_limit'
-  | 'document_limit'
-  | 'export_limit';
+// Re-export PaywallTriggerReason from analytics module for convenience
+export type { PaywallTriggerReason };
 
 export interface PaywallModalProps {
   /** Whether the modal is open */
@@ -34,16 +39,21 @@ export interface PaywallModalProps {
   trigger_reason: PaywallTriggerReason;
   /** Whether user can dismiss the modal (false for expired trials) */
   canDismiss?: boolean;
+  /** Optional callback when a plan is selected */
+  onSelectPlan?: (tier: SubscriptionTier) => void;
 }
 
 /**
- * Minimal Paywall Modal for Story 3.4
- * Shows upgrade prompt based on trigger reason
+ * Enhanced Paywall Modal with Full Tier Comparison
+ *
+ * Displays upgrade prompt with complete tier comparison table.
+ * Includes analytics tracking and plan selection handling.
  *
  * @param isOpen - Controls modal visibility
  * @param onClose - Callback for closing modal (only called if canDismiss is true)
  * @param trigger_reason - Why the paywall is being shown
  * @param canDismiss - Whether modal can be dismissed (default: true, false for trial_expired)
+ * @param onSelectPlan - Optional callback when a plan is selected (defaults to console.log)
  *
  * @example
  * ```tsx
@@ -52,6 +62,7 @@ export interface PaywallModalProps {
  *   onClose={() => setShowPaywall(false)}
  *   trigger_reason="trial_expired"
  *   canDismiss={false}
+ *   onSelectPlan={(tier) => router.push(`/checkout?tier=${tier}`)}
  * />
  * ```
  */
@@ -60,7 +71,14 @@ export function PaywallModal({
   onClose,
   trigger_reason,
   canDismiss = true,
+  onSelectPlan,
 }: PaywallModalProps): JSX.Element {
+  // Track when paywall is shown
+  useEffect(() => {
+    if (isOpen) {
+      trackPaywallShown(trigger_reason);
+    }
+  }, [isOpen, trigger_reason]);
   // Determine modal content based on trigger reason
   const getModalContent = (): { title: string; description: string } => {
     switch (trigger_reason) {
@@ -100,14 +118,27 @@ export function PaywallModal({
   // For expired trials, modal cannot be dismissed
   const handleOpenChange = (open: boolean): void => {
     if (canDismiss && !open) {
+      trackPaywallDismissed(trigger_reason);
       onClose();
+    }
+  };
+
+  // Handle plan selection
+  const handleSelectPlan = (tier: SubscriptionTier): void => {
+    trackPlanSelected(tier, trigger_reason);
+
+    if (onSelectPlan) {
+      onSelectPlan(tier);
+    } else {
+      // Default behavior: Log to console (Story 3.6 will add Stripe integration)
+      console.log('Navigate to Stripe Checkout for tier:', tier);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="sm:max-w-[500px]"
+        className="max-w-[95vw] sm:max-w-[900px] lg:max-w-[1100px] max-h-[90vh] overflow-y-auto"
         onPointerDownOutside={canDismiss ? undefined : (e) => e.preventDefault()}
         onEscapeKeyDown={canDismiss ? undefined : (e) => e.preventDefault()}
       >
@@ -119,23 +150,21 @@ export function PaywallModal({
           <DialogDescription className="pt-2">{description}</DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4 space-y-4">
-          {/* Minimal tier display - will be enhanced in Story 3.5 */}
-          <div className="rounded-lg border p-4 space-y-2">
-            <h3 className="font-semibold">Upgrade to Continue</h3>
-            <p className="text-sm text-muted-foreground">
-              Choose a plan that fits your needs and continue using OutcomeSignal.
-            </p>
-          </div>
+        <div className="mt-6 space-y-6">
+          {/* Tier Comparison Table */}
+          <TierComparisonTable
+            onSelectPlan={handleSelectPlan}
+            highlightTier="professional"
+          />
 
-          <div className="flex gap-2 justify-end">
-            {canDismiss && (
+          {/* Optional dismiss button for active trials */}
+          {canDismiss && (
+            <div className="flex justify-center pt-4">
               <Button variant="outline" onClick={onClose}>
                 Maybe Later
               </Button>
-            )}
-            <Button onClick={() => console.log('Navigate to pricing')}>View Plans</Button>
-          </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

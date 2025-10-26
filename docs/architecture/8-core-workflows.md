@@ -220,6 +220,130 @@ User tries to create 2nd initiative (Trial limit: 1)
 → User can now create up to 3 initiatives/month
 ```
 
+## 8.5A Paywall Modal and Upgrade Flow
+
+### Overview
+When users hit subscription limits or their trial expires, they see a comprehensive paywall modal with full tier comparison and upgrade options.
+
+### Workflow Steps
+
+```
+1. Trigger Event Occurs:
+   - Trial expires (auto-shown on dashboard login)
+   - User attempts to create initiative beyond limit
+   - User attempts to generate non-Brief document
+   - User attempts to export document (future)
+   ↓
+2. Paywall Modal Displayed:
+   - Full tier comparison table shown
+   - Three paid tiers: Starter ($49/mo), Professional ($149/mo), Enterprise ($499/mo)
+   - Feature comparison: Initiatives, AI Credits, Document Types, Export
+   - Professional tier highlighted with "Most Popular" badge
+   - Responsive layout (grid on desktop, stacked cards on mobile)
+   ↓
+3. User Selects Plan:
+   - Click "Select Plan" button for desired tier
+   - Analytics event tracked: trackPlanSelected(tier, trigger_reason)
+   - Currently logs to console (Story 3.6 will add Stripe integration)
+   ↓
+4. Modal Dismissal:
+   - If trial active: "Maybe Later" button available
+   - If trial expired: Modal cannot be dismissed (canDismiss: false)
+   - On dismiss: trackPaywallDismissed(trigger_reason)
+```
+
+### Trigger Points
+
+**1. Trial Expiration (Dashboard)**
+- Location: `/app/dashboard/page.tsx`
+- When: `checkSubscriptionAccess()` returns `isExpired: true`
+- Behavior: Modal auto-shows, non-dismissible
+- Trigger reason: `trial_expired`
+
+**2. Initiative Limit Reached**
+- Location: `/components/hierarchy/CreateInitiativeButton.tsx`
+- When: User clicks Create Initiative at limit
+- Behavior: Modal shown on click, dismissible if trial active
+- Trigger reason: `initiative_limit`
+
+**3. Document Generation Limit** (Future)
+- Trigger reason: `document_limit`
+
+**4. Export Limit** (Future)
+- Trigger reason: `export_limit`
+
+### Tier Comparison Structure
+
+| Feature | Trial | Starter | Professional | Enterprise |
+|---------|-------|---------|--------------|------------|
+| **Price** | Free 7 days | $49/mo | $149/mo | $499/mo |
+| **Initiatives** | 1 | 3/month | Unlimited | Unlimited |
+| **AI Credits** | 0 (Brief only) | 25/month | 100/month | Unlimited |
+| **Document Types** | Brief only | All 8 types | All 8 types | All 8 types |
+| **Export** | ✗ | ✓ | ✓ | ✓ |
+| **Support** | Community | Email | Priority Email | Dedicated |
+
+### Analytics Events
+
+All paywall interactions are tracked for analytics:
+
+```typescript
+// When modal is shown
+trackPaywallShown(trigger_reason: PaywallTriggerReason): void
+
+// When modal is dismissed (if dismissible)
+trackPaywallDismissed(trigger_reason: PaywallTriggerReason): void
+
+// When user selects a plan
+trackPlanSelected(tier: SubscriptionTier, trigger_reason: PaywallTriggerReason): void
+```
+
+Events include:
+- Timestamp (ISO 8601)
+- Trigger reason
+- Selected tier (for plan selection)
+
+### Component Architecture
+
+**PaywallModal Component:**
+- Path: `/components/subscription/PaywallModal.tsx`
+- Props: `isOpen`, `onClose`, `trigger_reason`, `canDismiss`, `onSelectPlan`
+- Features:
+  - Dynamic title/description based on trigger reason
+  - Embedded TierComparisonTable
+  - Conditional dismiss button
+  - Prevents ESC/click-outside when `canDismiss: false`
+
+**TierComparisonTable Component:**
+- Path: `/components/subscription/TierComparisonTable.tsx`
+- Props: `onSelectPlan`, `highlightTier` (defaults to 'professional')
+- Features:
+  - Displays Starter, Professional, Enterprise tiers
+  - Responsive grid layout (3 columns → 2 columns → stacked)
+  - "Most Popular" badge on Professional tier
+  - Visual highlighting for recommended tier
+  - Touch-friendly buttons (min 44px height)
+
+### Implementation Files
+
+**Created:**
+- `/components/subscription/TierComparisonTable.tsx` - Tier comparison component
+- `/lib/analytics/paywall-events.ts` - Analytics event tracking
+- `/components/subscription/__tests__/PaywallModal.test.tsx` - Unit tests
+- `/components/subscription/__tests__/TierComparisonTable.test.tsx` - Unit tests
+
+**Updated:**
+- `/components/subscription/PaywallModal.tsx` - Enhanced with full tier comparison
+- `/lib/constants/subscription-tiers.ts` - Added pricing fields
+- `/components/hierarchy/CreateInitiativeButton.tsx` - Added paywall trigger
+
+### Future Enhancements (Story 3.6)
+
+The `onSelectPlan` callback currently logs to console. Story 3.6 will:
+- Replace placeholder with Stripe Checkout redirect
+- Navigate to `/api/stripe/create-checkout-session?tier=${tier}`
+- Complete payment flow with Stripe
+
 ## 8.6 Workflow Timing Summary
 
 | Workflow | Time | Credits | NFR |

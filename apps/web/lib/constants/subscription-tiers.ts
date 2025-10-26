@@ -40,6 +40,10 @@ export interface SubscriptionTierLimits {
   trialDurationDays: number | null;
   /** Whether document export is enabled */
   exportEnabled: boolean;
+  /** Monthly price in dollars (null for trial) */
+  priceMonthly: number | null;
+  /** Display-friendly price string */
+  displayPrice: string;
 }
 
 /**
@@ -82,10 +86,12 @@ export const TIER_LIMITS: Record<SubscriptionTier, SubscriptionTierLimits> = {
     allowedDocumentTypes: ['brief'],
     trialDurationDays: 7,
     exportEnabled: false,
+    priceMonthly: null,
+    displayPrice: 'Free 7-day trial',
   },
 
   /**
-   * Starter Tier ($29/month)
+   * Starter Tier ($49/month)
    * - Up to 3 Initiatives per month
    * - 25 AI credits per month
    * - All 8 document types available
@@ -98,10 +104,12 @@ export const TIER_LIMITS: Record<SubscriptionTier, SubscriptionTierLimits> = {
     allowedDocumentTypes: ALL_DOCUMENT_TYPES,
     trialDurationDays: null,
     exportEnabled: true,
+    priceMonthly: 49,
+    displayPrice: '$49/mo',
   },
 
   /**
-   * Professional Tier ($99/month)
+   * Professional Tier ($149/month)
    * - Unlimited Initiatives
    * - 100 AI credits per month
    * - All 8 document types available
@@ -114,10 +122,12 @@ export const TIER_LIMITS: Record<SubscriptionTier, SubscriptionTierLimits> = {
     allowedDocumentTypes: ALL_DOCUMENT_TYPES,
     trialDurationDays: null,
     exportEnabled: true,
+    priceMonthly: 149,
+    displayPrice: '$149/mo',
   },
 
   /**
-   * Enterprise Tier (Custom pricing)
+   * Enterprise Tier ($499/month)
    * - Unlimited Initiatives
    * - Unlimited AI credits
    * - All 8 document types available
@@ -131,6 +141,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, SubscriptionTierLimits> = {
     allowedDocumentTypes: ALL_DOCUMENT_TYPES,
     trialDurationDays: null,
     exportEnabled: true,
+    priceMonthly: 499,
+    displayPrice: '$499/mo',
   },
 };
 
@@ -196,5 +208,22 @@ export function isUnlimited(tier: SubscriptionTier): {
     initiatives: limits.initiativesLimit === -1,
     credits: limits.creditsLimit === -1,
   };
+}
+
+/**
+ * Helper function to get the display price for a tier
+ *
+ * @param tier - The subscription tier to get the display price for
+ * @returns The display-friendly price string (e.g., "$49/mo" or "Free 7-day trial")
+ *
+ * @example
+ * ```typescript
+ * const price = getTierDisplayPrice('professional');
+ * console.log(price); // "$149/mo"
+ * ```
+ */
+export function getTierDisplayPrice(tier: SubscriptionTier): string {
+  const limits = getTierLimits(tier);
+  return limits.displayPrice;
 }
 

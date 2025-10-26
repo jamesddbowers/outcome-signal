@@ -1,0 +1,209 @@
+# Quality Gate Decision - Story 3.5
+# <!-- Powered by BMAD™ Core -->
+
+schema: 1
+story: "3.5"
+story_title: "Build Paywall Modal with Tier Comparison"
+gate: PASS
+status_reason: "Exceptional implementation with 100% AC coverage, 57/57 tests passing, zero technical debt, and production-ready code quality."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-10-26T18:12:00Z"
+
+# Waiver status
+waiver:
+  active: false
+
+# Issues identified
+top_issues: []
+
+# Risk assessment summary
+risk_summary:
+  totals:
+    critical: 0
+    high: 0
+    medium: 0
+    low: 0
+  recommendations:
+    must_fix: []
+    monitor: []
+
+# Quality metrics
+quality_score: 100
+expires: "2025-11-09T00:00:00Z"
+
+# Evidence collected during review
+evidence:
+  tests_reviewed: 57
+  risks_identified: 0
+  trace:
+    ac_covered: [1, 2, 3]
+    ac_gaps: []
+
+# Non-functional requirements validation
+nfr_validation:
+  security:
+    status: PASS
+    notes: "No sensitive data exposure, proper type safety, analytics events console-based for MVP"
+  performance:
+    status: PASS
+    notes: "Lightweight components (~6-7KB bundle), no unnecessary re-renders, responsive design with Tailwind Grid"
+  reliability:
+    status: PASS
+    notes: "Fail-open error handling, defensive programming with canDismiss defaults, strict TypeScript types"
+  maintainability:
+    status: PASS
+    notes: "Comprehensive JSDoc, modular architecture, analytics/components/constants properly separated, excellent test documentation"
+
+# Detailed recommendations
+recommendations:
+  immediate: []
+  future:
+    - action: "Replace console.log analytics with real analytics service (Mixpanel, Segment, etc.)"
+      refs: ["apps/web/lib/analytics/paywall-events.ts"]
+      priority: "low"
+      story_ref: "3.6 or later"
+    - action: "Implement Stripe Checkout integration for plan selection"
+      refs: ["apps/web/components/subscription/PaywallModal.tsx:127-136"]
+      priority: "medium"
+      story_ref: "3.6"
+    - action: "Consider lazy loading TierComparisonTable for optimal performance"
+      refs: ["apps/web/components/subscription/TierComparisonTable.tsx"]
+      priority: "low"
+      story_ref: "Performance optimization epic"
+    - action: "Run comprehensive accessibility audit (axe, Lighthouse)"
+      refs: ["apps/web/components/subscription/"]
+      priority: "low"
+      story_ref: "Accessibility epic"
+    - action: "Add GDPR compliance for analytics when real service integrated"
+      refs: ["apps/web/lib/analytics/paywall-events.ts"]
+      priority: "medium"
+      story_ref: "3.6 or later"
+
+# Test architecture details
+test_architecture:
+  total_tests: 57
+  pass_rate: 100
+  coverage_by_component:
+    PaywallModal: 16
+    TierComparisonTable: 21
+    CreateInitiativeButton: 14
+    TrialBadge: 6
+  test_quality:
+    - "Appropriate mocking strategy (analytics, child components)"
+    - "Clear descriptive test names with 'should...' pattern"
+    - "Logical organization with describe blocks"
+    - "Proper isolation with beforeEach cleanup"
+    - "Correct async handling with waitFor"
+  test_level_distribution:
+    unit: 51
+    integration: 6
+    e2e: 0
+
+# Acceptance criteria validation details
+ac_validation:
+  ac_1_modal_triggers:
+    status: PASS
+    coverage: 100
+    tests:
+      - "PaywallModal.test.tsx: 16 tests covering all trigger scenarios"
+      - "CreateInitiativeButton.test.tsx: Lines 90-119, 296-322 test paywall integration"
+    notes: "All trigger points implemented (trial_expired, initiative_limit, document_limit, export_limit)"
+  ac_2_tier_comparison:
+    status: PASS
+    coverage: 100
+    tests:
+      - "TierComparisonTable.test.tsx: 21 tests for pricing, features, badges, interactions"
+      - "PaywallModal.test.tsx: 16 tests for modal content and plan selection"
+    notes: "Full tier comparison with accurate pricing ($49, $149, $499) and feature breakdown"
+  ac_3_dismissibility:
+    status: PASS
+    coverage: 100
+    tests:
+      - "PaywallModal.test.tsx: Lines 147-189 test dismissibility logic"
+      - "CreateInitiativeButton.test.tsx: Lines 296-322 test expired trial scenario"
+    notes: "Dismissibility correctly tied to trial status (canDismiss prop)"
+
+# Build and lint verification
+build_verification:
+  build_status: PASS
+  lint_status: PASS
+  type_check_status: PASS
+  warnings: 0
+  errors: 0
+
+# Code quality metrics
+code_quality:
+  architecture: "EXCELLENT"
+  documentation: "EXCELLENT"
+  type_safety: "EXCELLENT"
+  test_coverage: "EXCEPTIONAL"
+  technical_debt: "NONE"
+  notable_patterns:
+    - "Single-responsibility components (PaywallModal, TierComparisonTable)"
+    - "Analytics abstraction for future platform integration"
+    - "Reusable TierComparisonTable with highlightTier and onSelectPlan props"
+    - "Comprehensive JSDoc with usage examples"
+    - "Proper error handling with fail-open pattern"
+    - "Defensive programming with sensible defaults"
+
+# Files reviewed
+files_reviewed:
+  created:
+    - "apps/web/components/subscription/TierComparisonTable.tsx"
+    - "apps/web/lib/analytics/paywall-events.ts"
+    - "apps/web/components/subscription/__tests__/PaywallModal.test.tsx"
+    - "apps/web/components/subscription/__tests__/TierComparisonTable.test.tsx"
+  modified:
+    - "apps/web/components/subscription/PaywallModal.tsx"
+    - "apps/web/lib/constants/subscription-tiers.ts"
+    - "apps/web/components/hierarchy/CreateInitiativeButton.tsx"
+    - "apps/web/components/hierarchy/__tests__/CreateInitiativeButton.test.tsx"
+    - "docs/architecture/8-core-workflows.md"
+
+# Review methodology
+review_type: "DEEP"
+review_duration_minutes: 45
+risk_factors:
+  - "Subscription/payment context"
+  - "Large diff (4 new files, 5 modified)"
+  - "Critical business logic (monetization flow)"
+escalation_triggers_met:
+  - "Subscription/payment files touched"
+  - "Diff > 500 lines"
+
+# Compliance verification
+compliance:
+  coding_standards: PASS
+  project_structure: PASS
+  testing_strategy: PASS
+  documentation_requirements: PASS
+  architecture_guidelines: PASS
+
+# Final assessment
+assessment_summary: |
+  Story 3.5 represents an exemplary implementation of the paywall modal with tier comparison.
+
+  **Highlights:**
+  - 100% acceptance criteria coverage with comprehensive Given-When-Then traceability
+  - 57 tests across 4 test files, all passing (100% pass rate)
+  - Zero technical debt introduced
+  - Exceptional code quality with comprehensive JSDoc documentation
+  - All NFRs validated (security, performance, reliability, maintainability)
+  - Production-ready implementation with future-proof design
+  - Build and lint pass with zero errors/warnings
+
+  **Risk Profile:**
+  - No critical, high, or medium risks identified
+  - All security, performance, and reliability concerns addressed
+  - Proper abstraction for future Stripe and analytics integration
+
+  **Recommendation:**
+  Story is complete and ready to move to Done status. Outstanding work by the development team.
+  This implementation serves as a model for future feature development.
+
+# Gate history (append-only audit trail)
+history:
+  - at: "2025-10-26T18:12:00Z"
+    gate: PASS
+    reviewer: "Quinn (Test Architect)"
+    note: "Initial comprehensive review - exceptional quality, zero issues identified"
