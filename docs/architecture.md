@@ -180,11 +180,11 @@ graph TB
             C2[Client Components - Three-Column Workspace]
 
             D[Next.js API Routes TypeScript]
-            D1[/api/initiatives/* - Initiative CRUD]
-            D2[/api/workflows/* - Workflow Triggers]
-            D3[/api/documents/* - Document CRUD]
-            D4[/api/webhooks/* - Clerk Stripe]
-            D5[/api/agents/invoke - Agent Chat]
+            D1[api/initiatives* - Initiative CRUD]
+            D2[api/workflows* - Workflow Triggers]
+            D3[api/documents* - Document CRUD]
+            D4[api/webhooks* - Clerk Stripe]
+            D5[api/agents/invoke - Agent Chat]
         end
     end
 
